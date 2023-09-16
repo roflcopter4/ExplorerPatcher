@@ -8,6 +8,9 @@ HMODULE hModule = NULL;
 HMODULE hAltTab = NULL;
 IOleCommandTarget* pAltTabSSO = NULL;
 
+extern BOOL sws_WindowHelpers_ShouldTreatShellManagedWindowAsNotShellManaged(HWND hWnd);
+extern BOOL sws_WindowHelpers_IsWindowShellManagedByExplorerPatcher(HWND hWnd);
+
 DEFINE_GUID(CLSID_AltTabSSO,
     0xA1607060, 0x5D4C, 0x467A, 0xB7, 0x11, 0x2B, 0x59, 0xA6, 0xF2, 0x59, 0x57);
 
