@@ -28,6 +28,15 @@
     <Filter Include="Settings">
       <UniqueIdentifier>{190d08ad-4a1d-4b58-81a1-6403eeb3cd2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\internal\libvalinet">
+      <UniqueIdentifier>{33287a47-e698-44bc-8ca9-70f0bb094651}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\internal\utils">
+      <UniqueIdentifier>{bcedff09-aef6-4c84-ab5f-83e385267d46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\internal\cxx">
+      <UniqueIdentifier>{fc343ce0-ef04-4a5c-9293-1d0a88a2d2ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -132,6 +141,12 @@
     <ClInclude Include="osutility.h">
       <Filter>Header Files\internal</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\Common.h">
+      <Filter>Header Files\internal\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="cxx\util.h">
+      <Filter>Header Files\internal\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ExplorerPatcher.rc">
@@ -213,6 +228,24 @@
     </ClCompile>
     <ClCompile Include="lvt.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\libvalinet\valinet\pdb\pdb.c">
+      <Filter>Source Files\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\libvalinet\valinet\hooking\iatpatch.c">
+      <Filter>Source Files\internal\libvalinet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\temp_string.c">
+      <Filter>Source Files\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="cxx\util.cpp">
+      <Filter>Source Files\internal\cxx</Filter>
+    </ClCompile>
+    <ClCompile Include="cxx\ConsoleWindow.cpp">
+      <Filter>Source Files\internal\cxx</Filter>
+    </ClCompile>
+    <ClCompile Include="cxx\CreateHash.cpp">
+      <Filter>Source Files\internal\cxx</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
