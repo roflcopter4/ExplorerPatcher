@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\cxx">
+      <UniqueIdentifier>{e6b83d74-0f12-444a-9589-d680cf804b94}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ep_setup.c">
@@ -21,12 +24,18 @@
     <ClCompile Include="..\ExplorerPatcher\utility.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\ExplorerPatcher\cxx\CreateHash.cpp">
+      <Filter>Source Files\cxx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\ExplorerPatcher\utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
