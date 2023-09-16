@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _H_HIDEEXPLORERSEARCHBAR_H_
 #define _H_HIDEEXPLORERSEARCHBAR_H_
 #include <Windows.h>
