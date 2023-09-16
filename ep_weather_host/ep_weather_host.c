@@ -1,4 +1,7 @@
 #include "ep_weather_host.h"
+
+#include <stdio.h>
+
 #include "ep_weather_provider_google_html.h"
 #include "ep_weather_provider_google_script.h"
 #include "ep_weather_error_html.h"
@@ -7,12 +10,18 @@ RTL_OSVERSIONINFOW global_rovi;
 DWORD32 global_ubr;
 SYSTEMTIME stLastUpdate;
 
+static HRESULT STDMETHODCALLTYPE ep_Weather_StartResize(EPWeather* _this);
+static HRESULT STDMETHODCALLTYPE ep_Weather_ReboundBrowser(EPWeather* _this, LONG64 dwType);
+static HRESULT STDMETHODCALLTYPE epw_Weather_NavigateToError(EPWeather* _this);
+static HRESULT STDMETHODCALLTYPE epw_Weather_NavigateToProvider(EPWeather* _this);
+static HRESULT STDMETHODCALLTYPE epw_Weather_ExecuteDataScript(EPWeather* _this);
+
 HRESULT STDMETHODCALLTYPE epw_Weather_static_Stub(void* _this)
 {
     return S_OK;
 }
 
-ULONG STDMETHODCALLTYPE epw_Weather_static_AddRefRelease(void* _this)
+ULONG STDMETHODCALLTYPE epw_Weather_static_AddRefRelease(EPWeather *_this)
 {
     return 1;
 }
@@ -24,35 +33,30 @@ static DWORD epw_Weather_ReleaseBecauseClientDiedThread(EPWeather* _this)
     return 0;
 }
 
+typedef DWORD (FAR WINAPI *SHRegGetValueFromHKCUHKLMFunc_t)(LPWSTR, LPWSTR, DWORD, LPVOID, LPDWORD, LPDWORD);
+
 static void epw_Weather_SetTextScaleFactorFromRegistry(EPWeather* _this, HKEY hKey, BOOL bRefresh)
 {
     DWORD dwTextScaleFactor = 100, dwSize = sizeof(DWORD);
-    if (_this->SHRegGetValueFromHKCUHKLMFunc && _this->SHRegGetValueFromHKCUHKLMFunc(L"SOFTWARE\\Microsoft\\Accessibility", L"TextScaleFactor", SRRF_RT_REG_DWORD, NULL, &dwTextScaleFactor, (LPDWORD)(&dwSize)) != ERROR_SUCCESS)
-    {
+
+    SHRegGetValueFromHKCUHKLMFunc_t func = (SHRegGetValueFromHKCUHKLMFunc_t)_this->SHRegGetValueFromHKCUHKLMFunc;
+
+    if (func && func(L"SOFTWARE\\Microsoft\\Accessibility", L"TextScaleFactor", SRRF_RT_REG_DWORD, NULL, &dwTextScaleFactor, &dwSize) != ERROR_SUCCESS)
         dwTextScaleFactor = 100;
-    }
     if (InterlockedExchange64(&_this->dwTextScaleFactor, dwTextScaleFactor) == dwTextScaleFactor)
-    {
         bRefresh = FALSE;
-    }
     if (hKey == HKEY_CURRENT_USER)
     {
         if (RegCreateKeyExW(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Accessibility", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WOW64_64KEY | KEY_WRITE, NULL, &_this->hKCUAccessibility, NULL) == ERROR_SUCCESS)
-        {
             RegNotifyChangeKeyValue(_this->hKCUAccessibility, FALSE, REG_NOTIFY_CHANGE_LAST_SET, _this->hSignalOnAccessibilitySettingsChangedFromHKCU, TRUE);
-        }
     }
     else if (hKey == HKEY_LOCAL_MACHINE)
     {
-        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Accessibility", 0, KEY_READ | KEY_WOW64_64KEY | KEY_WRITE, NULL, &_this->hKLMAccessibility))
-        {
+        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Accessibility", KEY_READ | KEY_WOW64_64KEY | KEY_WRITE, 0, &_this->hKLMAccessibility))
             RegNotifyChangeKeyValue(_this->hKLMAccessibility, FALSE, REG_NOTIFY_CHANGE_LAST_SET, _this->hSignalOnAccessibilitySettingsChangedFromHKLM, TRUE);
-        }
     }
     if (bRefresh)
-    {
-        _ep_Weather_StartResize(_this);
-    }
+        ep_Weather_StartResize(_this);
 }
 
 HRESULT STDMETHODCALLTYPE INetworkListManagerEvents_QueryInterface(GenericObjectWithThis* _this, REFIID riid, void** ppv)
@@ -241,9 +245,7 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_get_AdditionalBrowserArguments(ICoreWebV
 {
     *value = CoTaskMemAlloc(82 * sizeof(WCHAR));
     if (*value)
-    {
         wcscpy_s(*value, 82, L"--disable-site-isolation-trials --disable-web-security --allow-insecure-localhost");
-    }
     return S_OK;
 }
 
@@ -251,9 +253,7 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_get_Language(ICoreWebView2EnvironmentOpt
 {
     *value = CoTaskMemAlloc(6 * sizeof(WCHAR));
     if (*value)
-    {
         wcscpy_s(*value, 6, L"en-US");
-    }
     return S_OK;
 }
 
@@ -261,9 +261,7 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_get_TargetCompatibleBrowserVersion(ICore
 {
     *value = CoTaskMemAlloc(13 * sizeof(WCHAR));
     if (*value)
-    {
         wcscpy_s(*value, 13, L"97.0.1072.69");
-    }
     return S_OK;
 }
 
@@ -277,15 +275,16 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_CreateCoreWebView2EnvironmentCompleted(G
 {
     GenericObjectWithThis* pCoreWebView2CreateCoreWebView2ControllerCompletedHandler = 
         GenericObjectWithThis_MakeAndInitialize(&EPWeather_ICoreWebView2CreateCoreWebView2ControllerCompletedHandlerVtbl, _this->_this, L"pCoreWebView2CreateCoreWebView2ControllerCompletedHandler");
-    if (!pCoreWebView2CreateCoreWebView2ControllerCompletedHandler) return E_FAIL;
+    if (!pCoreWebView2CreateCoreWebView2ControllerCompletedHandler)
+        return E_FAIL;
     HRESULT _hr = pCoreWebView2Environemnt->lpVtbl->CreateCoreWebView2Controller(pCoreWebView2Environemnt, _this->_this->hWnd, pCoreWebView2CreateCoreWebView2ControllerCompletedHandler);
     pCoreWebView2CreateCoreWebView2ControllerCompletedHandler->lpVtbl->Release(pCoreWebView2CreateCoreWebView2ControllerCompletedHandler);
     return _hr;
 }
 
-HRESULT STDMETHODCALLTYPE _epw_Weather_NavigateToError(EPWeather* _this)
+static HRESULT STDMETHODCALLTYPE epw_Weather_NavigateToError(EPWeather* _this)
 {
-    _ep_Weather_ReboundBrowser(_this, TRUE);
+    ep_Weather_ReboundBrowser(_this, TRUE);
     InterlockedExchange64(&_this->bIsNavigatingToError, TRUE);
     UINT dpi = GetDpiForWindow(_this->hWnd);
     DWORD dwTextScaleFactor = epw_Weather_GetTextScaleFactor(_this);
@@ -302,9 +301,7 @@ HRESULT STDMETHODCALLTYPE _epw_Weather_NavigateToError(EPWeather* _this)
         SetWindowPos(_this->hWnd, NULL, 0, 0, rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top, SWP_NOMOVE | SWP_NOSENDCHANGING);
         HWND hNotifyWnd = InterlockedAdd64(&_this->hNotifyWnd, 0);
         if (hNotifyWnd)
-        {
             InvalidateRect(hNotifyWnd, NULL, TRUE);
-        }
     }
     if (_this->pCoreWebView2)
     {
@@ -313,7 +310,8 @@ HRESULT STDMETHODCALLTYPE _epw_Weather_NavigateToError(EPWeather* _this)
         {
             BOOL bIsOnErrorPage = !_wcsicmp(wszPageTitle, _T(CLSID_EPWeather_TEXT) L"_ErrorPage");
             CoTaskMemFree(wszPageTitle);
-            if (!bIsOnErrorPage) return _this->pCoreWebView2->lpVtbl->NavigateToString(_this->pCoreWebView2, ep_weather_error_html);
+            if (!bIsOnErrorPage)
+                return _this->pCoreWebView2->lpVtbl->NavigateToString(_this->pCoreWebView2, ep_weather_error_html);
             else
             {
                 printf("[Browser] Already on the error page.\n");
@@ -324,9 +322,9 @@ HRESULT STDMETHODCALLTYPE _epw_Weather_NavigateToError(EPWeather* _this)
     return E_FAIL;
 }
 
-HRESULT STDMETHODCALLTYPE _epw_Weather_NavigateToProvider(EPWeather* _this)
+static HRESULT STDMETHODCALLTYPE epw_Weather_NavigateToProvider(EPWeather* _this)
 {
-    _ep_Weather_ReboundBrowser(_this, FALSE);
+    ep_Weather_ReboundBrowser(_this, FALSE);
     HRESULT hr = S_OK;
     LONG64 dwProvider = InterlockedAdd64(&_this->dwProvider, 0);
     if (dwProvider == EP_WEATHER_PROVIDER_TEST)
@@ -339,18 +337,12 @@ HRESULT STDMETHODCALLTYPE _epw_Weather_NavigateToProvider(EPWeather* _this)
         if (wszScriptData)
         {
             swprintf_s(wszScriptData, EP_WEATHER_PROVIDER_GOOGLE_HTML_LEN, L"https://www.google.com/search?hl=%s&q=weather%s%s", _this->wszLanguage, _this->wszTerm[0] ? L" " : L"", _this->wszTerm);
-            if (_this->pCoreWebView2)
-            {
-                hr = _this->pCoreWebView2->lpVtbl->Navigate(_this->pCoreWebView2, wszScriptData);
-            }
-            else
-            {
-                hr = E_FAIL;
-            }
+
+            hr = _this->pCoreWebView2
+                     ? _this->pCoreWebView2->lpVtbl->Navigate(_this->pCoreWebView2, wszScriptData)
+                     : E_FAIL;
             if (FAILED(hr))
-            {
                 InterlockedExchange64(&_this->bBrowserBusy, FALSE);
-            }
             free(wszScriptData);
         }
         else
@@ -361,7 +353,7 @@ HRESULT STDMETHODCALLTYPE _epw_Weather_NavigateToProvider(EPWeather* _this)
     return hr;
 }
 
-HRESULT STDMETHODCALLTYPE _epw_Weather_ExecuteDataScript(EPWeather* _this)
+static HRESULT STDMETHODCALLTYPE epw_Weather_ExecuteDataScript(EPWeather* _this)
 {
     HRESULT hr = S_OK;
     LONG64 dwProvider = InterlockedAdd64(&_this->dwProvider, 0);
@@ -408,14 +400,14 @@ HRESULT STDMETHODCALLTYPE _epw_Weather_ExecuteDataScript(EPWeather* _this)
     return hr;
 }
 
-HRESULT STDMETHODCALLTYPE _ep_Weather_StartResize(EPWeather* _this)
+static HRESULT STDMETHODCALLTYPE ep_Weather_StartResize(EPWeather* _this)
 {
     _this->cntResizeWindow = 0;
     SetTimer(_this->hWnd, EP_WEATHER_TIMER_RESIZE_WINDOW, EP_WEATHER_TIMER_RESIZE_WINDOW_DELAY, NULL);
     return S_OK;
 }
 
-HRESULT STDMETHODCALLTYPE _ep_Weather_ReboundBrowser(EPWeather* _this, LONG64 dwType)
+static HRESULT STDMETHODCALLTYPE ep_Weather_ReboundBrowser(EPWeather* _this, LONG64 dwType)
 {
     UINT dpi = GetDpiForWindow(_this->hWnd);
     RECT bounds;
@@ -451,7 +443,7 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_CreateCoreWebView2ControllerCompleted(Ge
         _this->pCoreWebView2Controller->lpVtbl->put_ZoomFactor(_this->pCoreWebView2Controller, InterlockedAdd64(&_this->dwZoomFactor, 0) / 100.0);
     }
 
-    _ep_Weather_ReboundBrowser(_this, FALSE);
+    ep_Weather_ReboundBrowser(_this, FALSE);
 
     ICoreWebView2Controller2* pCoreWebView2Controller2 = NULL;
     _this->pCoreWebView2Controller->lpVtbl->QueryInterface(_this->pCoreWebView2Controller, &IID_ICoreWebView2Controller2, &pCoreWebView2Controller2);
@@ -508,7 +500,7 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_CreateCoreWebView2ControllerCompleted(Ge
     if (_this->pCoreWebView2PermissionRequestedEventHandler)
         _this->pCoreWebView2->lpVtbl->add_PermissionRequested(_this->pCoreWebView2, _this->pCoreWebView2PermissionRequestedEventHandler, &_this->tkOnPermissionRequested);
 
-    _epw_Weather_NavigateToProvider(_this);
+    epw_Weather_NavigateToProvider(_this);
 
     return S_OK;
 }
@@ -525,10 +517,8 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_CallDevToolsProtocolMethodCompleted(Gene
         {
             if (SUCCEEDED(EPWeather_Instance->pCoreWebView2->lpVtbl->get_Source(EPWeather_Instance->pCoreWebView2, &uri)))
             {
-                if (wcscmp(L"about:blank", uri ? uri : L""))
-                {
+                if (wcscmp(L"about:blank", uri ? uri : L"") != 0)
                     SetTimer(EPWeather_Instance->hWnd, EP_WEATHER_TIMER_REQUEST_REFRESH, EP_WEATHER_TIMER_REQUEST_REFRESH_DELAY, NULL);
-                }
                 CoTaskMemFree(uri);
             }
         }
@@ -544,7 +534,7 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_NavigationStarting(GenericObjectWithThis
     pCoreWebView2NavigationStartingEventArgs->lpVtbl->get_Uri(pCoreWebView2NavigationStartingEventArgs, &wszUri);
     if (wszUri)
     {
-        if (!_wcsicmp(wszUri, L"epweather://refresh"))
+        if (_wcsicmp(wszUri, L"epweather://refresh") == 0)
         {
             pCoreWebView2NavigationStartingEventArgs->lpVtbl->put_Cancel(pCoreWebView2NavigationStartingEventArgs, TRUE);
             PostMessageW(_this->hWnd, EP_WEATHER_WM_FETCH_DATA, 0, 0);
@@ -572,14 +562,14 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_NavigationCompleted(GenericObjectWithThi
         }
         else
         {
-            //_epw_Weather_ExecuteDataScript(_this);
+            //epw_Weather_ExecuteDataScript(_this);
             SetTimer(_this->hWnd, EP_WEATHER_TIMER_EXECUTEDATASCRIPT, EP_WEATHER_TIMER_EXECUTEDATASCRIPT_DELAY, NULL);
         }
     }
     else
     {
         printf("[Browser] Navigation completed with error, showing error page.\n");
-        _epw_Weather_NavigateToError(_this);
+        epw_Weather_NavigateToError(_this);
     }
     _this->pCoreWebView2Controller->lpVtbl->put_IsVisible(_this->pCoreWebView2Controller, FALSE);
     _this->pCoreWebView2Controller->lpVtbl->put_IsVisible(_this->pCoreWebView2Controller, TRUE);
@@ -676,26 +666,12 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_ExecuteScriptCompleted(GenericObjectWith
                                             if (pTerm)
                                             {
                                                 pTerm[0] = 0;
-                                                if (_this->wszTemperature)
-                                                {
-                                                    free(_this->wszTemperature);
-                                                }
-                                                if (_this->wszUnit)
-                                                {
-                                                    free(_this->wszUnit);
-                                                }
-                                                if (_this->wszCondition)
-                                                {
-                                                    free(_this->wszCondition);
-                                                }
-                                                if (_this->pImage)
-                                                {
-                                                    free(_this->pImage);
-                                                }
-                                                if (_this->wszLocation)
-                                                {
-                                                    free(_this->wszLocation);
-                                                }
+                                                free(_this->wszTemperature);
+                                                free(_this->wszUnit);
+                                                free(_this->wszCondition);
+                                                free(_this->pImage);
+                                                free(_this->wszLocation);
+
                                                 _this->cbTemperature = (wcslen(wszTemperature) + 1) * sizeof(WCHAR);
                                                 _this->wszTemperature = malloc(_this->cbTemperature);
                                                 _this->cbUnit = (wcslen(wszUnit) + 1) * sizeof(WCHAR);
@@ -706,6 +682,7 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_ExecuteScriptCompleted(GenericObjectWith
                                                 _this->pImage = malloc(_this->cbImage);
                                                 _this->cbLocation = (wcslen(wszLocation) + 1) * sizeof(WCHAR);
                                                 _this->wszLocation = malloc(_this->cbLocation);
+
                                                 if (_this->wszTemperature && _this->wszUnit && _this->wszCondition && _this->pImage && _this->wszLocation)
                                                 {
                                                     wcscpy_s(_this->wszTemperature, _this->cbTemperature / 2, wszTemperature);
@@ -724,6 +701,7 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_ExecuteScriptCompleted(GenericObjectWith
 
                                                     bOk = TRUE;
                                                 }
+
                                                 int h = _wtoi(wszHeight);
                                                 int ch = MulDiv(h, EP_WEATHER_HEIGHT, 367);
                                                 UINT dpi = GetDpiForWindow(_this->hWnd);
@@ -739,12 +717,10 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_ExecuteScriptCompleted(GenericObjectWith
                                                     SetRect(&rcAdj, 0, 0, w, ch);
                                                     AdjustWindowRectExForDpi(&rcAdj, epw_Weather_GetStyle(_this) & ~WS_OVERLAPPED, epw_Weather_HasMenuBar(_this), epw_Weather_GetExtendedStyle(_this), dpi);
                                                     SetWindowPos(_this->hWnd, NULL, 0, 0, rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top, SWP_NOMOVE | SWP_NOSENDCHANGING);
-                                                    _ep_Weather_ReboundBrowser(_this, FALSE);
+                                                    ep_Weather_ReboundBrowser(_this, FALSE);
                                                     HWND hNotifyWnd = InterlockedAdd64(&_this->hNotifyWnd, 0);
                                                     if (hNotifyWnd)
-                                                    {
                                                         InvalidateRect(hNotifyWnd, NULL, TRUE);
-                                                    }
                                                 }
                                             }
                                         }
@@ -762,7 +738,7 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_ExecuteScriptCompleted(GenericObjectWith
         if (!bOk)
         {
             printf("[General] Navigating to error page.\n");
-            _epw_Weather_NavigateToError(_this);
+            epw_Weather_NavigateToError(_this);
         }
         else
         {
@@ -784,24 +760,27 @@ HRESULT STDMETHODCALLTYPE ICoreWebView2_PermissionRequested(GenericObjectWithThi
     pCoreWebView2PermissionRequestedEventArgs->lpVtbl->get_PermissionKind(pCoreWebView2PermissionRequestedEventArgs, &kind);
     if (kind == COREWEBVIEW2_PERMISSION_KIND_GEOLOCATION)
     {
-        DWORD r = InterlockedAdd64(&_this2->_this->dwGeolocationMode, 0);
-        printf("[Permissions] Geolocation permission request: %d\n", r);
-        pCoreWebView2PermissionRequestedEventArgs->lpVtbl->put_State(pCoreWebView2PermissionRequestedEventArgs, r ? COREWEBVIEW2_PERMISSION_STATE_ALLOW : COREWEBVIEW2_PERMISSION_STATE_DENY);
+        LONG64 r = InterlockedAdd64(&_this2->_this->dwGeolocationMode, 0);
+        printf("[Permissions] Geolocation permission request: %lld\n", r);
+        pCoreWebView2PermissionRequestedEventArgs->lpVtbl->put_State(
+            pCoreWebView2PermissionRequestedEventArgs,
+            r ? COREWEBVIEW2_PERMISSION_STATE_ALLOW : COREWEBVIEW2_PERMISSION_STATE_DENY
+        );
     }
     return S_OK;
 }
 
 ULONG STDMETHODCALLTYPE epw_Weather_AddRef(EPWeather* _this)
 {
-    ULONG value = InterlockedIncrement64(&(_this->cbCount));
-    printf("[General] AddRef: %d\n", value);
+    unsigned value = InterlockedIncrement(&(_this->cbCount));
+    printf("[General] AddRef: %u\n", value);
     return value;
 }
 
 ULONG STDMETHODCALLTYPE epw_Weather_Release(EPWeather* _this)
 {
-    ULONG value = InterlockedDecrement64(&(_this->cbCount));
-    printf("[General] Release: %d\n", value);
+    unsigned value = InterlockedDecrement(&(_this->cbCount));
+    printf("[General] Release: %u\n", value);
 
     if (value == 0)
     {
@@ -819,44 +798,25 @@ ULONG STDMETHODCALLTYPE epw_Weather_Release(EPWeather* _this)
                 CloseHandle(_this->hSignalExitMainThread);
             }
         }
+
         if (_this->hInitializeEvent)
-        {
             CloseHandle(_this->hInitializeEvent);
-        }
-
         if (_this->hMutexData)
-        {
             CloseHandle(_this->hMutexData);
-        }
-
         if (_this->hUxtheme)
-        {
             FreeLibrary(_this->hUxtheme);
-        }
         if (_this->hShlwapi)
-        {
             FreeLibrary(_this->hShlwapi);
-        }
         if (_this->hKCUAccessibility)
-        {
             RegCloseKey(_this->hKCUAccessibility);
-        }
         if (_this->hKLMAccessibility)
-        {
             RegCloseKey(_this->hKLMAccessibility);
-        }
         if (_this->hSignalOnAccessibilitySettingsChangedFromHKCU)
-        {
             CloseHandle(_this->hSignalOnAccessibilitySettingsChangedFromHKCU);
-        }
         if (_this->hSignalOnAccessibilitySettingsChangedFromHKLM)
-        {
             CloseHandle(_this->hSignalOnAccessibilitySettingsChangedFromHKLM);
-        }
         if (_this->hSignalKillSwitch)
-        {
             CloseHandle(_this->hSignalKillSwitch);
-        }
 
         FREE(_this);
         LONG dwOutstandingObjects = InterlockedDecrement(&epw_OutstandingObjects);
@@ -903,9 +863,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_About(EPWeather* _this, HWND hWnd)
     HRESULT hr = NOERROR;
 
     if (SUCCEEDED(hr))
-    {
         hr = !_this ? (E_NOINTERFACE) : hr;
-    }
     if (SUCCEEDED(hr))
     {
         wchar_t text[MAX_PATH];
@@ -940,9 +898,7 @@ LRESULT CALLBACK epw_Weather_WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPA
         _this = (EPWeather*)(ptr);
     }
     if (!_this)
-    {
         return DefWindowProcW(hWnd, uMsg, wParam, lParam);
-    }
 
     if (uMsg == WM_TIMER && wParam == EP_WEATHER_TIMER_REQUEST_REPAINT)
     {
@@ -1007,7 +963,7 @@ LRESULT CALLBACK epw_Weather_WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPA
     }
     else if (uMsg == WM_TIMER && wParam == EP_WEATHER_TIMER_EXECUTEDATASCRIPT)
     {
-        _epw_Weather_ExecuteDataScript(_this);
+        epw_Weather_ExecuteDataScript(_this);
         KillTimer(_this->hWnd, EP_WEATHER_TIMER_EXECUTEDATASCRIPT);
         return 0;
     }
@@ -1018,7 +974,7 @@ LRESULT CALLBACK epw_Weather_WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPA
         {
             _this->pCoreWebView2->lpVtbl->get_Source(_this->pCoreWebView2, &uri);
         }
-        _ep_Weather_ReboundBrowser(_this, !wcscmp(L"about:blank", uri ? uri : L""));
+        ep_Weather_ReboundBrowser(_this, !wcscmp(L"about:blank", uri ? uri : L""));
         CoTaskMemFree(uri);
         return 0;
     }
@@ -1027,7 +983,7 @@ LRESULT CALLBACK epw_Weather_WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPA
         INT64 bWasBrowserBusy = InterlockedCompareExchange64(&_this->bBrowserBusy, TRUE, FALSE);
         if (!bWasBrowserBusy)
         {
-            return _epw_Weather_NavigateToProvider(_this);
+            return epw_Weather_NavigateToProvider(_this);
         }
         return HRESULT_FROM_WIN32(ERROR_BUSY);
     }
@@ -1096,7 +1052,7 @@ LRESULT CALLBACK epw_Weather_WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPA
         if (_this->pCoreWebView2Controller)
         {
             _this->pCoreWebView2Controller->lpVtbl->put_ZoomFactor(_this->pCoreWebView2Controller, wParam / 100.0);
-            _ep_Weather_StartResize(_this);
+            ep_Weather_StartResize(_this);
         }
     }
     else if (uMsg == WM_CLOSE || (uMsg == WM_KEYUP && wParam == VK_ESCAPE) || (uMsg == WM_ACTIVATEAPP && wParam == FALSE && GetAncestor(GetForegroundWindow(), GA_ROOT) != _this->hWnd))
@@ -1112,9 +1068,7 @@ LRESULT CALLBACK epw_Weather_WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPA
             WINDOWPOS* pwp = (WINDOWPOS*)lParam;
             pwp->flags |= (!dwDevMode ? (SWP_NOMOVE | SWP_NOSIZE) : 0);
             if (dwDevMode)
-            {
-                _ep_Weather_ReboundBrowser(_this, TRUE);
-            }
+                ep_Weather_ReboundBrowser(_this, TRUE);
         }
         return 0;
     }
@@ -1141,9 +1095,7 @@ LRESULT CALLBACK epw_Weather_WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPA
             if (IsWindows11())
             {
                 if (!IsDwmExtendFrameIntoClientAreaBrokenInThisBuild())
-                {
                     DwmExtendFrameIntoClientArea(_this->hWnd, &marGlassInset);
-                }
                 BOOL value = (IsThemeActive() && !IsHighContrast()) ? 1 : 0;
                 SetMicaMaterialForThisWindow(_this->hWnd, value);
             }
@@ -1151,15 +1103,11 @@ LRESULT CALLBACK epw_Weather_WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPA
             {
                 int s = 0;
                 if (global_rovi.dwBuildNumber < 18985)
-                {
                     s = -1;
-                }
                 DwmSetWindowAttribute(_this->hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE + s, &dwDarkMode, sizeof(LONG64));
             }
             if (!dwDarkMode)
-            {
                 epw_Weather_SetDarkMode(_this, dwDarkMode, TRUE);
-            }
             return 0;
         }
     }
@@ -1288,9 +1236,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_SetDarkMode(EPWeather* _this, LONG64 dwDar
             AllowDarkModeForWindow(_this->hWnd, bEnabled);
             int s = 0;
             if (global_rovi.dwBuildNumber < 18985)
-            {
                 s = -1;
-            }
             DwmSetWindowAttribute(_this->hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE + s, &bEnabled, sizeof(BOOL));
             //InvalidateRect(_this->hWnd, NULL, FALSE);
             PostMessageW(_this->hWnd, EP_WEATHER_WM_SET_BROWSER_THEME, bEnabled, bRefresh);
@@ -1312,9 +1258,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_SetWindowCornerPreference(EPWeather* _this
     InterlockedExchange64(&_this->dwWindowCornerPreference, dwWindowCornerPreference);
     INT preference = dwWindowCornerPreference;
     if (_this->hWnd)
-    {
         DwmSetWindowAttribute(_this->hWnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
-    }
     return S_OK;
 }
 
@@ -1322,9 +1266,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_SetDevMode(EPWeather* _this, LONG64 dwDevM
 {
     InterlockedExchange64(&_this->dwDevMode, dwDevMode);
     if (bRefresh)
-    {
         PostMessageW(_this->hWnd, EP_WEATHER_WM_SETDEVMODE, dwDevMode, 0);
-    }
     return S_OK;
 }
 
@@ -1332,9 +1274,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_SetIconPack(EPWeather* _this, LONG64 dwIco
 {
     InterlockedExchange64(&_this->dwIconPack, dwIconPack);
     if (bRefresh)
-    {
         PostMessageW(_this->hWnd, EP_WEATHER_WM_FETCH_DATA, 0, 0);
-    }
     return S_OK;
 }
 
@@ -1360,9 +1300,7 @@ DWORD WINAPI epw_Weather_MainThread(EPWeather* _this)
 
     _this->hrLastError = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     if (FAILED(_this->hrLastError))
-    {
         goto cleanup;
-    }
 
     _this->hrLastError = CoCreateInstance(
         &CLSID_TaskbarList,
@@ -1372,9 +1310,7 @@ DWORD WINAPI epw_Weather_MainThread(EPWeather* _this)
         (LPVOID*)&_this->pTaskList
     );
     if (FAILED(_this->hrLastError))
-    {
         goto cleanup;
-    }
 
     WNDCLASSW wc;
     ZeroMemory(&wc, sizeof(WNDCLASSW));
@@ -1439,9 +1375,7 @@ DWORD WINAPI epw_Weather_MainThread(EPWeather* _this)
     {
         int s = 0;
         if (global_rovi.dwBuildNumber < 18985)
-        {
             s = -1;
-        }
         DwmSetWindowAttribute(_this->hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE + s, &dwDarkMode, sizeof(LONG64));
     }
     epw_Weather_SetDarkMode(_this, dwDarkMode, FALSE);
@@ -1539,98 +1473,50 @@ DWORD WINAPI epw_Weather_MainThread(EPWeather* _this)
     }
 
     if (SUCCEEDED(hr))
-    {
         spConnectionPoint->lpVtbl->Unadvise(spConnectionPoint, dwCookie);
-    }
     if (spSink)
-    {
         spSink->lpVtbl->Release(spSink);
-    }
     if (spConnectionPoint)
-    {
         spConnectionPoint->lpVtbl->Release(spConnectionPoint);
-    }
     if (spConnectionPoints)
-    {
         spConnectionPoints->lpVtbl->Release(spConnectionPoints);
-    }
     if (spManager)
-    {
         spManager->lpVtbl->Release(spManager);
-    }
     if (pNetworkListManager)
-    {
         pNetworkListManager->lpVtbl->Release(pNetworkListManager);
-    }
 
-    cleanup:
-
+cleanup:
     if (_this->tkOnNavigationStarting.value)
-    {
         _this->pCoreWebView2->lpVtbl->remove_NavigationStarting(_this->pCoreWebView2, _this->tkOnNavigationStarting);
-    }
     if (_this->pCoreWebView2NavigationStartingEventHandler)
-    {
         _this->pCoreWebView2NavigationStartingEventHandler->lpVtbl->Release(_this->pCoreWebView2NavigationStartingEventHandler);
-    }
     if (_this->tkOnNavigationCompleted.value)
-    {
         _this->pCoreWebView2->lpVtbl->remove_NavigationCompleted(_this->pCoreWebView2, _this->tkOnNavigationCompleted);
-    }
     if (_this->pCoreWebView2NavigationCompletedEventHandler)
-    {
         _this->pCoreWebView2NavigationCompletedEventHandler->lpVtbl->Release(_this->pCoreWebView2NavigationCompletedEventHandler);
-    }
     if (_this->tkOnPermissionRequested.value)
-    {
         _this->pCoreWebView2->lpVtbl->remove_PermissionRequested(_this->pCoreWebView2, _this->tkOnPermissionRequested);
-    }
     if (_this->pCoreWebView2PermissionRequestedEventHandler)
-    {
         _this->pCoreWebView2PermissionRequestedEventHandler->lpVtbl->Release(_this->pCoreWebView2PermissionRequestedEventHandler);
-    }
     if (_this->pCoreWebView2)
-    {
         _this->pCoreWebView2->lpVtbl->Release(_this->pCoreWebView2);
-    }
     if (_this->pCoreWebView2Controller)
-    {
         _this->pCoreWebView2Controller->lpVtbl->Release(_this->pCoreWebView2Controller);
-    }
-    if (_this->wszTemperature)
-    {
-        free(_this->wszTemperature);
-    }
-    if (_this->wszUnit)
-    {
-        free(_this->wszUnit);
-    }
-    if (_this->wszCondition)
-    {
-        free(_this->wszCondition);
-    }
-    if (_this->pImage)
-    {
-        free(_this->pImage);
-    }
-    if (_this->wszLocation)
-    {
-        free(_this->wszLocation);
-    }
+    free(_this->wszTemperature);
+    free(_this->wszUnit);
+    free(_this->wszCondition);
+    free(_this->pImage);
+    free(_this->wszLocation);
     if (_this->hWnd)
-    {
         DestroyWindow(_this->hWnd);
-    }
     if (_this->pTaskList)
-    {
         _this->pTaskList->lpVtbl->Release(_this->pTaskList);
-    }
+
     CoUninitialize();
     SetEvent(_this->hInitializeEvent);
     if (bShouldReleaseBecauseClientDied)
-    {
         SHCreateThread(epw_Weather_ReleaseBecauseClientDiedThread, _this, CTF_NOADDREFLIB, NULL);
-    }
+
     printf("[General] Exiting main thread.\n");
     return 0;
 }
@@ -1652,35 +1538,25 @@ HRESULT STDMETHODCALLTYPE epw_Weather_Initialize(EPWeather* _this, WCHAR wszName
     }
 
     if (dwUpdateSchedule < 0)
-    {
         return E_INVALIDARG;
-    }
     InterlockedExchange64(&_this->dwUpdateSchedule, dwUpdateSchedule);
 
     if (dwTemperatureUnit < 0 || dwTemperatureUnit > EP_WEATHER_NUM_TUNITS)
-    {
         return E_INVALIDARG;
-    }
     InterlockedExchange64(&_this->dwTemperatureUnit, dwTemperatureUnit);
 
     if (dwProvider < 0 || dwProvider > EP_WEATHER_NUM_PROVIDERS)
-    {
         return E_INVALIDARG;
-    }
     InterlockedExchange64(&_this->dwProvider, dwProvider);
 
     if (!cbx || !cby)
-    {
         return E_INVALIDARG;
-    }
     InterlockedExchange64(&_this->cbx, cbx);
     InterlockedExchange64(&_this->cby, cby);
 
     _this->hSignalKillSwitch = CreateMutexW(NULL, FALSE, wszName);
     if (!_this->hSignalKillSwitch || GetLastError() != ERROR_ALREADY_EXISTS)
-    {
         return E_INVALIDARG;
-    }
 
     InterlockedExchange64(&_this->dwGeolocationMode, dwGeolocationMode);
     InterlockedExchange64(&_this->dwZoomFactor, dwZoomFactor);
@@ -1709,38 +1585,28 @@ HRESULT STDMETHODCALLTYPE epw_Weather_Initialize(EPWeather* _this, WCHAR wszName
 
     _this->hShlwapi = LoadLibraryW(L"Shlwapi.dll");
     if (_this->hShlwapi)
-    {
         _this->SHRegGetValueFromHKCUHKLMFunc = GetProcAddress(_this->hShlwapi, "SHRegGetValueFromHKCUHKLM");
-    }
 
     _this->hMutexData = CreateMutexW(NULL, FALSE, NULL);
     if (!_this->hMutexData)
-    {
         return HRESULT_FROM_WIN32(GetLastError());
-    }
 
     _this->hInitializeEvent = CreateEventW(NULL, FALSE, FALSE, NULL);
     if (!_this->hInitializeEvent)
-    {
         return HRESULT_FROM_WIN32(GetLastError());
-    }
 
     _this->hSignalExitMainThread = CreateEventW(NULL, FALSE, FALSE, NULL);
     if (!_this->hSignalExitMainThread)
-    {
         return HRESULT_FROM_WIN32(GetLastError());
-    }
 
     _this->hSignalOnAccessibilitySettingsChangedFromHKCU = CreateEventW(NULL, FALSE, FALSE, NULL);
     if (!_this->hSignalOnAccessibilitySettingsChangedFromHKCU)
-    {
         return HRESULT_FROM_WIN32(GetLastError());
-    }
+
     _this->hSignalOnAccessibilitySettingsChangedFromHKLM = CreateEventW(NULL, FALSE, FALSE, NULL);
     if (!_this->hSignalOnAccessibilitySettingsChangedFromHKLM)
-    {
         return HRESULT_FROM_WIN32(GetLastError());
-    }
+
     epw_Weather_SetTextScaleFactorFromRegistry(_this, HKEY_CURRENT_USER, FALSE);
     epw_Weather_SetTextScaleFactorFromRegistry(_this, HKEY_LOCAL_MACHINE, FALSE);
 
@@ -1748,15 +1614,11 @@ HRESULT STDMETHODCALLTYPE epw_Weather_Initialize(EPWeather* _this, WCHAR wszName
 
     _this->hMainThread = CreateThread(NULL, 0, epw_Weather_MainThread, _this, 0, NULL);
     if (!_this->hMainThread)
-    {
         return HRESULT_FROM_WIN32(GetLastError());
-    }
 
     WaitForSingleObject(_this->hInitializeEvent, INFINITE);
     if (FAILED(_this->hrLastError))
-    {
         return _this->hrLastError;
-    }
 
     *hWnd = _this->hWnd;
 
@@ -1768,9 +1630,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_Show(EPWeather* _this)
     SetLastError(0);
     LONG_PTR dwExStyle = GetWindowLongPtrW(_this->hWnd, GWL_EXSTYLE);
     if (!GetLastError())
-    {
         SetWindowLongPtrW(_this->hWnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW | dwExStyle);
-    }
     INT preference = InterlockedAdd64(&_this->dwWindowCornerPreference, 0);
     DwmSetWindowAttribute(_this->hWnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
     PostMessageW(_this->hWnd, EP_WEATHER_WM_REBOUND_BROWSER, 0, 0);
@@ -1784,9 +1644,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_Hide(EPWeather* _this)
     SetLastError(0);
     LONG_PTR dwExStyle = GetWindowLongPtrW(_this->hWnd, GWL_EXSTYLE);
     if (!GetLastError())
-    {
         SetWindowLongPtrW(_this->hWnd, GWL_EXSTYLE, ~WS_EX_TOOLWINDOW & dwExStyle);
-    }
     ShowWindow(_this->hWnd, SW_HIDE);
     return S_OK;
 }
@@ -1801,13 +1659,9 @@ HRESULT STDMETHODCALLTYPE epw_Weather_LockData(EPWeather* _this)
 {
     DWORD dwRes = WaitForSingleObject(_this->hMutexData, INFINITE);
     if (dwRes == WAIT_ABANDONED)
-    {
         return HRESULT_FROM_WIN32(ERROR_ABANDONED_WAIT_0);
-    }
     else if (dwRes == WAIT_FAILED)
-    {
         return HRESULT_FROM_WIN32(GetLastError());
-    }
     return S_OK;
 }
 
@@ -1823,21 +1677,13 @@ HRESULT STDMETHODCALLTYPE epw_Weather_GetDataSizes(EPWeather* _this, LPDWORD pcb
 HRESULT STDMETHODCALLTYPE epw_Weather_GetData(EPWeather* _this, DWORD cbTemperature, LPCWSTR wszTemperature, DWORD cbUnit, LPCWSTR wszUnit, DWORD cbCondition, LPCWSTR wszCondition, DWORD cbImage, char* pImage)
 {
     if (cbTemperature)
-    {
         memcpy_s(wszTemperature, cbTemperature, _this->wszTemperature, _this->cbTemperature);
-    }
     if (cbUnit)
-    {
         memcpy_s(wszUnit, cbUnit, _this->wszUnit, _this->cbUnit);
-    }
     if (cbCondition)
-    {
         memcpy_s(wszCondition, cbCondition, _this->wszCondition, _this->cbCondition);
-    }
     if (cbImage)
-    {
         memcpy_s(pImage, cbImage, _this->pImage, _this->cbImage);
-    }
     return S_OK;
 }
 
@@ -1869,9 +1715,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_GetTitle(EPWeather* _this, DWORD cbTitle, 
 HRESULT STDMETHODCALLTYPE epw_Weather_UnlockData(EPWeather* _this)
 {
     if (!ReleaseMutex(_this->hMutexData))
-    {
         return HRESULT_FROM_WIN32(GetLastError());
-    }
     return S_OK;
 }
 
@@ -1889,9 +1733,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_SetNotifyWindow(EPWeather* _this, HWND hWn
 HRESULT STDMETHODCALLTYPE epw_Weather_SetTemperatureUnit(EPWeather* _this, LONG64 dwTemperatureUnit)
 {
     if (dwTemperatureUnit < 0 || dwTemperatureUnit > EP_WEATHER_NUM_TUNITS)
-    {
         return E_INVALIDARG;
-    }
     InterlockedExchange64(&_this->dwTemperatureUnit, dwTemperatureUnit);
     return S_OK;
 }
@@ -1899,9 +1741,7 @@ HRESULT STDMETHODCALLTYPE epw_Weather_SetTemperatureUnit(EPWeather* _this, LONG6
 HRESULT STDMETHODCALLTYPE epw_Weather_SetUpdateSchedule(EPWeather* _this, LONG64 dwUpdateSchedule)
 {
     if (dwUpdateSchedule < 0)
-    {
         return E_INVALIDARG;
-    }
     LONG64 dwOldUpdateSchedule = InterlockedExchange64(&_this->dwUpdateSchedule, dwUpdateSchedule);
     if (dwOldUpdateSchedule != dwUpdateSchedule)
     {
@@ -1914,26 +1754,18 @@ HRESULT STDMETHODCALLTYPE epw_Weather_SetUpdateSchedule(EPWeather* _this, LONG64
 HRESULT STDMETHODCALLTYPE epw_Weather_SetTerm(EPWeather* _this, DWORD cbTerm, LPCWSTR wszTerm)
 {
     if (cbTerm)
-    {
         memcpy_s(_this->wszTerm, sizeof(WCHAR) * MAX_PATH, wszTerm, cbTerm);
-    }
     else
-    {
         ZeroMemory(&_this->wszTerm, sizeof(WCHAR) * MAX_PATH);
-    }
     return S_OK;
 }
 
 HRESULT STDMETHODCALLTYPE epw_Weather_SetLanguage(EPWeather* _this, DWORD cbLanguage, LPCWSTR wszLanguage)
 {
     if (cbLanguage)
-    {
         memcpy_s(_this->wszLanguage, sizeof(WCHAR) * MAX_PATH, wszLanguage, cbLanguage);
-    }
     else
-    {
         ZeroMemory(&_this->wszLanguage, sizeof(WCHAR) * MAX_PATH);
-    }
     return S_OK;
 }
 
