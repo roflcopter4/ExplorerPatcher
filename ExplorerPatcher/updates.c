@@ -210,19 +210,19 @@ BOOL IsUpdateAvailableHelper(
                             if (strchr(DOSMODE_OFFSET + hash, '.'))
                             {
                                 szLeftMost = DOSMODE_OFFSET + hash;
-                                if (szSecondLeft = strchr(szLeftMost, '.'))
+                                if ((szSecondLeft = strchr(szLeftMost, '.')))
                                 {
                                     *szSecondLeft = 0;
                                     szSecondLeft++;
-                                    if (szSecondRight = strchr(szSecondLeft, '.'))
+                                    if ((szSecondRight = strchr(szSecondLeft, '.')))
                                     {
                                         *szSecondRight = 0;
                                         szSecondRight++;
-                                        if (szRightMost = strchr(szSecondRight, '.'))
+                                        if ((szRightMost = strchr(szSecondRight, '.')))
                                         {
                                             *szRightMost = 0;
                                             szRightMost++;
-                                            if (szRealHash = strchr(szRightMost, '.'))
+                                            if ((szRealHash = strchr(szRightMost, '.')))
                                             {
                                                 bOldType = FALSE;
 
@@ -247,19 +247,19 @@ BOOL IsUpdateAvailableHelper(
                                                 if (strchr(hashCopy, '.')) 
                                                 {
                                                     szLocalLeftMost = hashCopy;
-                                                    if (szLocalSecondLeft = strchr(szLocalLeftMost, '.'))
+                                                    if ((szLocalSecondLeft = strchr(szLocalLeftMost, '.')))
                                                     {
                                                         *szLocalSecondLeft = 0;
                                                         szLocalSecondLeft++;
-                                                        if (szLocalSecondRight = strchr(szLocalSecondLeft, '.'))
+                                                        if ((szLocalSecondRight = strchr(szLocalSecondLeft, '.')))
                                                         {
                                                             *szLocalSecondRight = 0;
                                                             szLocalSecondRight++;
-                                                            if (szLocalRightMost = strchr(szLocalSecondRight, '.'))
+                                                            if ((szLocalRightMost = strchr(szLocalSecondRight, '.')))
                                                             {
                                                                 *szLocalRightMost = 0;
                                                                 szLocalRightMost++;
-                                                                if (szLocalRealHash = strchr(szLocalRightMost, '.'))
+                                                                if ((szLocalRealHash = strchr(szLocalRightMost, '.')))
                                                                 {
                                                                     *szLocalRealHash = 0;
                                                                     szLocalRealHash++;
@@ -270,7 +270,7 @@ BOOL IsUpdateAvailableHelper(
                                                                     dwLocalSecondRight = atoi(szLocalSecondRight);
                                                                     dwLocalRightMost = atoi(szLocalRightMost);
 #ifdef UPDATES_VERBOSE_OUTPUT
-                                                                    printf("[Updates] Local version obtained from hash is %d.%d.%d.%d.\n", dwLocalLeftMost, dwLocalSecondLeft, dwLocalSecondRight, dwLocalRightMost);
+                                                                    printf("[Updates] Local version obtained from hash is %lu.%lu.%lu.%lu.\n", dwLocalLeftMost, dwLocalSecondLeft, dwLocalSecondRight, dwLocalRightMost);
 #endif
                                                                 }
                                                             }
@@ -339,7 +339,7 @@ BOOL IsUpdateAvailableHelper(
                                                     *(szSecondRight - 1) = '.';
                                                     *(szRightMost - 1) = '.';
                                                     *(szRealHash - 1) = '.';
-                                                    if (_stricmp(DOSMODE_OFFSET + hash, szCheckAgainst))
+                                                    if (_stricmp(DOSMODE_OFFSET + hash, szCheckAgainst) != 0)
                                                     {
                                                         bIsUpdateAvailable = TRUE;
                                                     }
@@ -398,7 +398,7 @@ BOOL IsUpdateAvailableHelper(
                         wszURL[101] = L'e';
                         wszURL[102] = 0;
                     }
-                    for (unsigned int i = 0; i < wszURL; ++i)
+                    for (unsigned int i = 0; i < (uintptr_t)wszURL; ++i)
                     {
                         if (!wszURL[i])
                         {

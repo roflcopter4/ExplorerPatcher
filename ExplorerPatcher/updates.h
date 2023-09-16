@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _H_UPDATES_H_
 #define _H_UPDATES_H_
 #include <Windows.h>
@@ -30,7 +31,7 @@ extern HMODULE hModule;
 #define UPDATES_RELEASE_INFO_URL_STABLE   "https://github.com/valinet/ExplorerPatcher/releases/latest"
 #define UPDATES_RELEASE_INFO_URL_STAGING  "https://api.github.com/repos/valinet/ExplorerPatcher/releases?per_page=1"
 
-typedef struct IsUpdateAvailableParameters
+struct IsUpdateAvailableParameters
 {
 	HINTERNET hInternet;
 	HANDLE hEvent;
