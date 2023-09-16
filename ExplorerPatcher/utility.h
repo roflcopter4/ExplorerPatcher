@@ -1,28 +1,41 @@
+#pragma once
 #ifndef _H_UTILITY_H_
 #define _H_UTILITY_H_
+
 #if __has_include("ep_private.h")
 //#define USE_PRIVATE_INTERFACES
 #endif
+#define _CRT_RAND_S 1
+#ifdef _DEBUG
+# define DEBUG 1
+#endif
+
 #include <Windows.h>
-#include <stdio.h>
-#include <tchar.h>
-#include <windows.data.xml.dom.h>
+#include <Shlwapi.h>
+#include <Shlobj_core.h>
+#include <Shobjidl.h>
 #include <accctrl.h>
 #include <aclapi.h>
-#include <sddl.h>
-#include <Shobjidl.h>
-#include <Shlobj_core.h>
-#include <restartmanager.h>
-#pragma comment(lib, "Rstrtmgr.lib")
-#define _LIBVALINET_INCLUDE_UNIVERSAL
-#include <valinet/universal/toast/toast.h>
-#include "osutility.h"
-#include "queryversion.h"
-#pragma comment(lib, "Psapi.lib")
 #include <activscp.h>
 #include <netlistmgr.h>
+#include <psapi.h>
+#include <restartmanager.h>
+#include <sddl.h>
+#include <tchar.h>
+#include <windows.data.xml.dom.h>
 
+#define _LIBVALINET_INCLUDE_UNIVERSAL
+#include <valinet/universal/toast/toast.h>
+
+#include "osutility.h"
+#include "queryversion.h"
 #include "def.h"
+
+#pragma comment(lib, "Rstrtmgr.lib")
+#pragma comment(lib, "Psapi.lib")
+
+
+#include "Common/Common.h"
 
 #define WM_MSG_GUI_SECTION WM_USER + 1
 #define WM_MSG_GUI_SECTION_GET 1
@@ -51,18 +64,16 @@ DEFINE_GUID(CLSID_NetworkListManager,
 DEFINE_GUID(IID_NetworkListManager,
     0xDCB00000, 0x570F, 0x4A9B, 0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B);
 
-typedef struct _StuckRectsData
+typedef struct StuckRectsData
 {
     int pvData[6];
     RECT rc;
     POINT pt;
 } StuckRectsData;
 
-HRESULT FindDesktopFolderView(REFIID riid, void** ppv);
-
-HRESULT GetDesktopAutomationObject(REFIID riid, void** ppv);
-
-HRESULT ShellExecuteFromExplorer(
+extern HRESULT FindDesktopFolderView(REFIID riid, void** ppv);
+extern HRESULT GetDesktopAutomationObject(REFIID riid, void** ppv);
+extern HRESULT ShellExecuteFromExplorer(
     PCWSTR pszFile,
     PCWSTR pszParameters,
     PCWSTR pszDirectory,
@@ -70,126 +81,48 @@ HRESULT ShellExecuteFromExplorer(
     int nShowCmd
 );
 
-void ToggleTaskbarAutohide();
-
 #pragma region "Weird stuff"
-INT64 STDMETHODCALLTYPE nimpl4_1(INT64 a1, DWORD* a2);
-INT64 STDMETHODCALLTYPE nimpl4_0(INT64 a1, DWORD* a2);
-__int64 STDMETHODCALLTYPE nimpl2(__int64 a1, uintptr_t* a2);
-ULONG STDMETHODCALLTYPE nimpl3();
-HRESULT STDMETHODCALLTYPE nimpl();
-HRESULT STDMETHODCALLTYPE nimpl1(__int64 a1, uintptr_t* a2, uintptr_t* a3);
-HRESULT STDMETHODCALLTYPE nimpl1_2(__int64 a1, uintptr_t* a2, uintptr_t* a3);
-HRESULT STDMETHODCALLTYPE nimpl1_3(__int64 a1, uintptr_t* a2, uintptr_t* a3);
-__int64 STDMETHODCALLTYPE nimpl4(__int64 a1, __int64 a2, __int64 a3, BYTE* a4);
-typedef struct _IActivationFactoryAA
-{
-    CONST_VTBL struct IActivationFactoryVtbl* lpVtbl;
-    struct IActivationFactoryVtbl* lpVtbl2;
-    struct IActivationFactoryVtbl* lpVtbl3;
-} IActivationFactoryAA;
+struct IActivationFactoryAA;
+typedef struct IActivationFactoryAA IActivationFactoryAA;
 extern const IActivationFactoryAA XamlExtensionsFactory;
 #pragma endregion
 
-inline int FileExistsW(wchar_t* file)
-{
-    WIN32_FIND_DATAW FindFileData;
-    HANDLE handle = FindFirstFileW(file, &FindFileData);
-    int found = handle != INVALID_HANDLE_VALUE;
-    if (found)
-    {
-        FindClose(handle);
-    }
-    return found;
-}
+extern void ToggleTaskbarAutohide(void);
+extern int  FileExistsW(wchar_t const *file);
+extern void printf_guid(GUID guid);
 
-// https://stackoverflow.com/questions/1672677/print-a-guid-variable
-void printf_guid(GUID guid);
+extern LRESULT CALLBACK BalloonWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-LRESULT CALLBACK BalloonWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+__declspec(dllexport) extern int  CALLBACK ZZTestBalloon(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
+__declspec(dllexport) extern void CALLBACK ZZTestToast(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
+__declspec(dllexport) extern void CALLBACK ZZLaunchExplorer(HWND hWnd, HINSTANCE hInstance, PTCHAR lpszCmdLine, int nCmdShow);
+__declspec(dllexport) extern void CALLBACK ZZLaunchExplorerDelayed(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
+__declspec(dllexport) extern void CALLBACK ZZRestartExplorer(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
 
-__declspec(dllexport) CALLBACK ZZTestBalloon(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
+#ifndef MIN
+# define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#endif
+#ifndef MAX
+# define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+#endif
 
-__declspec(dllexport) CALLBACK ZZTestToast(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
+typedef LSTATUS (*SHRegGetValueFromHKCUHKLMFunc_t)(
+    _In_ PCWSTR      pwszKey,
+    _In_opt_ PCWSTR  pwszValue,
+    _In_ SRRF        srrfFlags,
+    _Out_opt_ DWORD *pdwType,
+    _Out_writes_bytes_to_opt_(*pcbData, *pcbData)  void  *pvData,
+    _Inout_opt_ _When_(pvData != 0, _Pre_notnull_) DWORD *pcbData
+);
+extern SHRegGetValueFromHKCUHKLMFunc_t SHRegGetValueFromHKCUHKLMFunc;
 
-__declspec(dllexport) CALLBACK ZZLaunchExplorer(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
 
-__declspec(dllexport) CALLBACK ZZLaunchExplorerDelayed(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
-
-__declspec(dllexport) CALLBACK ZZRestartExplorer(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
-
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
-#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
-
-FARPROC SHRegGetValueFromHKCUHKLMFunc;
-
-inline LSTATUS SHRegGetValueFromHKCUHKLMWithOpt(
-    PCWSTR pwszKey,
-    PCWSTR pwszValue,
-    REGSAM samDesired,
-    void* pvData,
-    DWORD* pcbData
-)
-{
-    LSTATUS lRes = ERROR_FILE_NOT_FOUND;
-    HKEY hKey = NULL;
-
-    RegOpenKeyExW(
-        HKEY_CURRENT_USER,
-        pwszKey,
-        0,
-        samDesired,
-        &hKey
-    );
-    if (hKey == NULL || hKey == INVALID_HANDLE_VALUE)
-    {
-        hKey = NULL;
-    }
-    if (hKey)
-    {
-        lRes = RegQueryValueExW(
-            hKey,
-            pwszValue,
-            0,
-            NULL,
-            pvData,
-            pcbData
-        );
-        RegCloseKey(hKey);
-        if (lRes == ERROR_SUCCESS || lRes == ERROR_MORE_DATA)
-        {
-            return lRes;
-        }
-    }
-    RegOpenKeyExW(
-        HKEY_LOCAL_MACHINE,
-        pwszKey,
-        0,
-        samDesired,
-        &hKey
-    );
-    if (hKey == NULL || hKey == INVALID_HANDLE_VALUE)
-    {
-        hKey = NULL;
-    }
-    if (hKey)
-    {
-        lRes = RegQueryValueExW(
-            hKey,
-            pwszValue,
-            0,
-            NULL,
-            pvData,
-            pcbData
-        );
-        RegCloseKey(hKey);
-        if (lRes == ERROR_SUCCESS || lRes == ERROR_MORE_DATA)
-        {
-            return lRes;
-        }
-    }
-    return lRes;
-}
+extern LSTATUS SHRegGetValueFromHKCUHKLMWithOpt(
+    PCWSTR  pwszKey,
+    PCWSTR  pwszValue,
+    REGSAM  samDesired,
+    void   *pvData,
+    DWORD  *pcbData);
 
 static HWND(WINAPI* CreateWindowInBand)(
     _In_ DWORD dwExStyle,
@@ -207,201 +140,42 @@ static HWND(WINAPI* CreateWindowInBand)(
     DWORD band
     );
 
-BOOL(WINAPI* GetWindowBand)(HWND hWnd, PDWORD pdwBand);
+extern BOOL  (WINAPI *GetWindowBand)(HWND hWnd, PDWORD pdwBand);
+extern BOOL  (WINAPI *SetWindowBand)(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
+extern INT64 (*SetWindowCompositionAttribute)(HWND, void *);
 
-BOOL(WINAPI* SetWindowBand)(HWND hWnd, HWND hwndInsertAfter, DWORD dwBand);
-
-INT64(*SetWindowCompositionAttribute)(HWND, void*);
-
-static void(*SetPreferredAppMode)(INT64 bAllowDark);
-
-static void(*AllowDarkModeForWindow)(HWND hWnd, INT64 bAllowDark);
-
-static BOOL(*ShouldAppsUseDarkMode)();
-
-static BOOL(*ShouldSystemUseDarkMode)();
-
-static void(*GetThemeName)(void*, void*, void*);
-
-static BOOL AppsShouldUseDarkMode() { return TRUE; }
-
-void* ReadFromFile(wchar_t* wszFileName, DWORD* dwSize);
-
-int ComputeFileHash(LPCWSTR filename, LPSTR hash, DWORD dwHash);
-
-int ComputeFileHash2(HMODULE hModule, LPCWSTR filename, LPSTR hash, DWORD dwHash);
-
-void LaunchPropertiesGUI(HMODULE hModule);
-
-BOOL SystemShutdown(BOOL reboot);
-
-LSTATUS RegisterDWMService(DWORD dwDesiredState, DWORD dwOverride);
-
-char* StrReplaceAllA(const char* s, const char* oldW, const char* newW, int* dwNewSize);
-
-WCHAR* StrReplaceAllW(const WCHAR* s, const WCHAR* oldW, const WCHAR* newW, int* dwNewSize);
-
-HRESULT InputBox(BOOL bPassword, HWND hWnd, LPCWSTR wszPrompt, LPCWSTR wszTitle, LPCWSTR wszDefault, LPWSTR wszAnswer, DWORD cbAnswer, BOOL* bCancelled);
-
-inline BOOL IsHighContrast()
+__attribute__((const)) static __forceinline
+BOOL AppsShouldUseDarkMode(void)
 {
-    HIGHCONTRASTW highContrast;
-    ZeroMemory(&highContrast, sizeof(HIGHCONTRASTW));
-    highContrast.cbSize = sizeof(highContrast);
-    if (SystemParametersInfoW(SPI_GETHIGHCONTRAST, sizeof(highContrast), &highContrast, FALSE))
-        return highContrast.dwFlags & HCF_HIGHCONTRASTON;
-    return FALSE;
+    return TRUE;
 }
 
-// https://codereview.stackexchange.com/questions/29198/random-string-generator-in-c
-static inline WCHAR* rand_string(WCHAR* str, size_t size)
-{
-    const WCHAR charset[] = L"abcdefghijklmnopqrstuvwxyz";
-    if (size) {
-        --size;
-        for (size_t n = 0; n < size; n++) {
-            int key = rand() % (int)((sizeof(charset) / sizeof(WCHAR)) - 1);
-            str[n] = charset[key];
-        }
-        str[size] = L'\0';
-    }
-    return str;
-}
-
-inline long long milliseconds_now() {
-    LARGE_INTEGER s_frequency;
-    BOOL s_use_qpc = QueryPerformanceFrequency(&s_frequency);
-    if (s_use_qpc) {
-        LARGE_INTEGER now;
-        QueryPerformanceCounter(&now);
-        return (1000LL * now.QuadPart) / s_frequency.QuadPart;
-    }
-    else {
-        return GetTickCount();
-    }
-}
-
-inline BOOL IsAppRunningAsAdminMode()
-{
-    BOOL fIsRunAsAdmin = FALSE;
-    DWORD dwError = ERROR_SUCCESS;
-    PSID pAdministratorsGroup = NULL;
-
-    // Allocate and initialize a SID of the administrators group.
-    SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
-    if (!AllocateAndInitializeSid(
-        &NtAuthority,
-        2,
-        SECURITY_BUILTIN_DOMAIN_RID,
-        DOMAIN_ALIAS_RID_ADMINS,
-        0, 0, 0, 0, 0, 0,
-        &pAdministratorsGroup))
-    {
-        dwError = GetLastError();
-        goto Cleanup;
-    }
-
-    // Determine whether the SID of administrators group is enabled in 
-    // the primary access token of the process.
-    if (!CheckTokenMembership(NULL, pAdministratorsGroup, &fIsRunAsAdmin))
-    {
-        dwError = GetLastError();
-        goto Cleanup;
-    }
-
-Cleanup:
-    // Centralized cleanup for all allocated resources.
-    if (pAdministratorsGroup)
-    {
-        FreeSid(pAdministratorsGroup);
-        pAdministratorsGroup = NULL;
-    }
-
-    // Throw the error if something failed in the function.
-    if (ERROR_SUCCESS != dwError)
-    {
-        return FALSE;
-    }
-
-    return fIsRunAsAdmin;
-}
-
-inline BOOL IsDesktopWindowAlreadyPresent()
-{
-    return (FindWindowExW(NULL, NULL, L"Progman", NULL) || FindWindowExW(NULL, NULL, L"Proxy Desktop", NULL));
-}
-
-// https://jiangsheng.net/2013/01/22/how-to-restart-windows-explorer-programmatically-using-restart-manager/
-inline RM_UNIQUE_PROCESS GetExplorerApplication()
-{
-    HWND hwnd = FindWindow(L"Shell_TrayWnd", NULL);
-    DWORD pid = 0;
-    GetWindowThreadProcessId(hwnd, &pid);
-
-    RM_UNIQUE_PROCESS out = { 0, { -1, -1 } };
-    DWORD bytesReturned;
-    WCHAR imageName[MAX_PATH]; // process image name buffer
-    DWORD processIds[2048]; // max 2048 processes (more than enough)
-
-    // enumerate all running processes (usually around 60-70)
-    EnumProcesses(processIds, sizeof(processIds), &bytesReturned);
-    int count = bytesReturned / sizeof(DWORD); // number of processIds returned
-
-    for (int i = 0; i < count; ++i)
-    {
-        DWORD processId = processIds[i];
-        HANDLE hProc;
-        if (processId == pid && (hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processId)))
-        {
-            GetProcessImageFileNameW(hProc, imageName, MAX_PATH);
-            FILETIME ftStart, ftExit, ftKernel, ftUser;
-            GetProcessTimes(hProc, &ftStart, &ftExit, &ftKernel, &ftUser);
-
-            if (ftStart.dwLowDateTime < out.ProcessStartTime.dwLowDateTime)
-            {
-                out.dwProcessId = processId;
-                out.ProcessStartTime = ftStart;
-            }
-            CloseHandle(hProc);
-        }
-    }
-    return out; // return count in pResults
-}
-
-static DWORD RmSession = -1;
-static wchar_t RmSessionKey[CCH_RM_SESSION_KEY + 1];
+extern void     * ReadFromFile(wchar_t const* wszFileName, DWORD * dwSize);
+extern DWORD      ComputeFileHash(LPCWSTR filename, LPSTR hash, DWORD dwHash);
+extern int        ComputeFileHash2(HMODULE hModule, LPCWSTR filename, LPSTR hash, DWORD dwHash);
+extern void       LaunchPropertiesGUI(HMODULE hModule);
+extern BOOL       SystemShutdown(BOOL reboot);
+extern LSTATUS    RegisterDWMService(DWORD dwDesiredState, DWORD dwOverride);
+extern char     * StrReplaceAllA(const char * s, const char * oldW, const char * newW, DWORD * dwNewSize);
+extern WCHAR    * StrReplaceAllW(const WCHAR * s, const WCHAR * oldW, const WCHAR * newW, DWORD * dwNewSize);
+extern BOOL       IsHighContrast(void);
+extern WCHAR    * ep_generate_random_wide_string(WCHAR * str, size_t size);
+extern ULONGLONG  milliseconds_now(void);
+extern HRESULT    InputBox(BOOL bPassword, HWND hWnd, LPCWSTR wszPrompt, LPCWSTR wszTitle, LPCWSTR wszDefault, LPWSTR wszAnswer, DWORD cbAnswer, BOOL* bCancelled);
 
 // shuts down the explorer and is ready for explorer restart
-inline void BeginExplorerRestart()
-{
-    if (RmStartSession(&RmSession, 0, RmSessionKey) == ERROR_SUCCESS)
-    {
-        RM_UNIQUE_PROCESS rgApplications[] = { GetExplorerApplication() };
-        RmRegisterResources(RmSession, 0, 0, 1, rgApplications, 0, 0);
-
-        DWORD rebootReason;
-        UINT nProcInfoNeeded, nProcInfo = 16;
-        RM_PROCESS_INFO affectedApps[16];
-        RmGetList(RmSession, &nProcInfoNeeded, &nProcInfo, affectedApps, &rebootReason);
-
-        if (rebootReason == RmRebootReasonNone) // no need for reboot?
-        {
-            // shutdown explorer
-            RmShutdown(RmSession, RmForceShutdown, 0);
-        }
-    }
-}
+extern void BeginExplorerRestart(void);
 // restarts the explorer
-inline void FinishExplorerRestart()
-{
-    DWORD dwError;
-    if (dwError = RmRestart(RmSession, 0, NULL))
-        printf("\n RmRestart error: %d\n\n", dwError);
+extern void FinishExplorerRestart(void);
 
-    RmEndSession(RmSession);
-    RmSession = -1;
-    RmSessionKey[0] = 0;
-}
+extern RM_UNIQUE_PROCESS GetExplorerApplication(void);
+extern BOOL IsAppRunningAsAdminMode(void);
+extern BOOL IsDesktopWindowAlreadyPresent(void);
+extern BOOL ExitExplorer(void);
+extern void StartExplorerWithDelay(int delay, HANDLE userToken);
+extern BOOL StartExplorer(void);
+extern BOOL IncrementDLLReferenceCount(HINSTANCE hinst);
+extern BOOL WINAPI PatchContextMenuOfNewMicrosoftIME(BOOL *bFound);
 
 // https://stackoverflow.com/questions/5689904/gracefully-exit-explorer-programmatically
 inline BOOL ExitExplorer()
@@ -592,18 +366,16 @@ inline BOOL WINAPI PatchContextMenuOfNewMicrosoftIME(BOOL* bFound)
 
 extern UINT PleaseWaitTimeout;
 extern HHOOK PleaseWaitHook;
-extern HWND PleaseWaitHWND;
-extern void* PleaseWaitCallbackData;
-extern BOOL (*PleaseWaitCallbackFunc)(void* data);
-BOOL PleaseWait_UpdateTimeout(int timeout);
-VOID CALLBACK PleaseWait_TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
-LRESULT CALLBACK PleaseWait_HookProc(int code, WPARAM wParam, LPARAM lParam);
+extern HWND  PleaseWaitHWND;
+extern void *PleaseWaitCallbackData;
+extern BOOL (*PleaseWaitCallbackFunc)(void *data);
 
-BOOL DownloadAndInstallWebView2Runtime();
-
-BOOL DownloadFile(LPCWSTR wszURL, DWORD dwSize, LPCWSTR wszPath);
-
-BOOL IsConnectedToInternet();
+extern BOOL             PleaseWait_UpdateTimeout(int timeout);
+extern void CALLBACK    PleaseWait_TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
+extern LRESULT CALLBACK PleaseWait_HookProc(int code, WPARAM wParam, LPARAM lParam);
+extern BOOL             DownloadAndInstallWebView2Runtime(void);
+extern BOOL             DownloadFile(LPCWSTR wszURL, DWORD dwSize, LPCWSTR wszPath);
+extern BOOL             IsConnectedToInternet(void);
 
 #define SCRATCH_QCM_FIRST 1
 #define SCRATCH_QCM_LAST  0x7FFF
@@ -623,13 +395,11 @@ BOOL IsConnectedToInternet();
 #define SPOP_CLICKMENU_DISLIKE   40003
 #define SPOP_CLICKMENU_LAST      40003
 
-BOOL DoesOSBuildSupportSpotlight();
+extern BOOL DoesOSBuildSupportSpotlight(void);
+extern BOOL IsSpotlightEnabled(void);
+extern void SpotlightHelper(DWORD dwOp, HWND hWnd, HMENU hMenu, LPPOINT pPt);
 
-BOOL IsSpotlightEnabled();
-
-void SpotlightHelper(DWORD dwOp, HWND hWnd, HMENU hMenu, LPPOINT pPt);
-
-typedef struct _MonitorOverrideData
+typedef struct MonitorOverrideData
 {
     DWORD cbIndex;
     DWORD dwIndex;
