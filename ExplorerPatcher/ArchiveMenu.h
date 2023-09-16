@@ -1,13 +1,15 @@
+#pragma once
 #ifndef _H_ARCHIVEMENU_H_
 #define _H_ARCHIVEMENU_H_
+
 #include <initguid.h>
 #include <Windows.h>
 #include <Shlobj_core.h>
 
-#define OPEN_NAME L"&Open archive"
-#define EXTRACT_NAME L"&Extract to \"%s\\\""
-#define OPEN_CMD L"\"C:\\Program Files\\7-Zip\\7zFM.exe\" %s"
-#define EXTRACT_CMD L"\"C:\\Program Files\\7-Zip\\7zG.exe\" x -o\"%s\" -spe %s"
+#define OPEN_NAME    L"&Open archive"
+#define EXTRACT_NAME L"&Extract to \"%ls\\\""
+#define OPEN_CMD     L"\"C:\\Program Files\\7-Zip\\7zFM.exe\" %ls"
+#define EXTRACT_CMD  L"\"C:\\Program Files\\7-Zip\\7zG.exe\" x -o\"%ls\" -spe %ls"
 
 DEFINE_GUID(__uuidof_TaskbarList,
     0x56FDF344,
@@ -20,7 +22,7 @@ DEFINE_GUID(__uuidof_ITaskbarList,
     0x00, 0x60, 0x97, 0xC9, 0xA0, 0x90
 );
 
-typedef struct _ArchiveMenuThreadParams
+typedef struct ArchiveMenuThreadParams
 {
     HWND* hWnd;
 	WNDPROC wndProc;
@@ -39,22 +41,23 @@ typedef struct _ArchiveMenuThreadParams
         _In_opt_ LPVOID lpParam,
         DWORD band
         );
-} ArchiveMenuThreadParams;
-DWORD ArchiveMenuThread(ArchiveMenuThreadParams* params);
+}     ArchiveMenuThreadParams;
 
-LRESULT CALLBACK ArchiveMenuWndProc(
+extern DWORD ArchiveMenuThread(ArchiveMenuThreadParams const* params);
+
+extern LRESULT CALLBACK ArchiveMenuWndProc(
     _In_ HWND   hWnd,
     _In_ UINT   uMsg,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam,
-    INT64(*ImmersiveContextMenuHelper_ApplyOwnerDrawToMenuFunc)(
+    INT64(*ApplyOwnerDrawToMenuFunc)(
         HMENU h1,
         HMENU h2,
         HWND a3,
         unsigned int a4,
         void* data
         ),
-    void(*ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc)(
+    void(*RemoveOwnerDrawFromMenuFunc)(
         HMENU _this,
         HMENU hWnd,
         HWND a3

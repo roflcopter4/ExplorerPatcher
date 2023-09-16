@@ -1,200 +1,147 @@
 #include "ArchiveMenu.h"
 
-DWORD ArchiveMenuThread(ArchiveMenuThreadParams* params)
+#include <Shlwapi.h>
+#include <stdio.h>
+
+DWORD ArchiveMenuThread(ArchiveMenuThreadParams const *params)
 {
+    static ATOM windowRegistrationAtom = 0;
+
     Sleep(1000);
-    printf("Started \"Archive menu\" thread.\n");
+    wprintf(L"Started \"Archive menu\" thread.\n");
 
     HRESULT hr = CoInitialize(NULL);
     if (FAILED(hr))
-    {
         return 0;
+
+    if (windowRegistrationAtom == 0) {
+        WNDCLASS wc = {
+            .style         = CS_DBLCLKS,
+            .lpfnWndProc   = params->wndProc,
+            .hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH),
+            .hInstance     = GetModuleHandleW(NULL),
+            .lpszClassName = L"ArchiveMenuWindowExplorer",
+            .hCursor       = LoadCursorW(NULL, IDC_ARROW),
+        };
+        ATOM tmp = RegisterClassW(&wc);
+        if (tmp != 0)
+            windowRegistrationAtom = tmp;
     }
 
-    WNDCLASS wc = { 0 };
-    wc.style = CS_DBLCLKS;
-    wc.lpfnWndProc = params->wndProc;
-    wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-    wc.hInstance = GetModuleHandle(NULL);
-    wc.lpszClassName = L"ArchiveMenuWindowExplorer";
-    wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
-    RegisterClass(&wc);
-
-    *(params->hWnd) = params->CreateWindowInBand(
-        0,
+    *params->hWnd = params->CreateWindowInBand(
+        0, windowRegistrationAtom,
         L"ArchiveMenuWindowExplorer",
-        0,
-        WS_POPUP,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        GetModuleHandle(NULL),
-        NULL,
-        7
+        WS_POPUP, 0, 0, 0, 0,
+        NULL, NULL, GetModuleHandleW(NULL),
+        NULL, 7
     );
-    if (!*(params->hWnd))
-    {
+    if (!*params->hWnd)
         return 0;
-    }
-    ITaskbarList* pTaskList = NULL;
-    hr = CoCreateInstance(
-        &__uuidof_TaskbarList,
-        NULL,
-        CLSCTX_ALL,
-        &__uuidof_ITaskbarList,
-        (void**)(&pTaskList)
-    );
+
+    ITaskbarList *pTaskList = NULL;
+    hr = CoCreateInstance(&__uuidof_TaskbarList, NULL, CLSCTX_ALL,
+                          &__uuidof_ITaskbarList, (void **)&pTaskList);
     if (FAILED(hr))
-    {
         return 0;
-    }
     hr = pTaskList->lpVtbl->HrInit(pTaskList);
     if (FAILED(hr))
-    {
         return 0;
-    }
     ShowWindow(*(params->hWnd), SW_SHOW);
     hr = pTaskList->lpVtbl->DeleteTab(pTaskList, *(params->hWnd));
     if (FAILED(hr))
-    {
         return 0;
-    }
-    hr = pTaskList->lpVtbl->Release(pTaskList);
-    if (FAILED(hr))
-    {
+    ULONG ulr = pTaskList->lpVtbl->Release(pTaskList);
+    if (FAILED(ulr))
         return 0;
-    }
 
-    MSG msg = { 0 };
-    while (GetMessage(&msg, NULL, 0, 0))
-    {
+    MSG msg = {0};
+    while (GetMessageW(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        DispatchMessageW(&msg);
     }
 
-    printf("Ended \"Archive menu\" thread.\n");
+    wprintf(L"Ended \"Archive menu\" thread.\n");
+    return 1;
 }
+
+typedef INT64 (*ApplyOwnerDrawToMenuFunc_t)   (HMENU, HMENU, HWND, UINT, LPVOID);
+typedef void  (*RemoveOwnerDrawFromMenuFunc_t)(HMENU, HMENU, HWND);
 
 LRESULT CALLBACK ArchiveMenuWndProc(
     _In_ HWND   hWnd,
     _In_ UINT   uMsg,
     _In_ WPARAM wParam,
     _In_ LPARAM lParam,
-    INT64(*ImmersiveContextMenuHelper_ApplyOwnerDrawToMenuFunc)(
-        HMENU h1,
-        HMENU h2,
-        HWND a3,
-        unsigned int a4,
-        void* data
-        ),
-    void(*ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc)(
-        HMENU _this,
-        HMENU hWnd,
-        HWND a3
-        )
-)
+    ApplyOwnerDrawToMenuFunc_t    ApplyOwnerDrawToMenuFunc,
+    RemoveOwnerDrawFromMenuFunc_t RemoveOwnerDrawFromMenuFunc)
 {
-    LRESULT result;
-
-    if (uMsg == WM_COPYDATA)
-    {
-        COPYDATASTRUCT* st = lParam;
-        HWND srcWnd = wParam;
-
+    switch (uMsg) {
+    case WM_COPYDATA: {
+        COPYDATASTRUCT *st = (COPYDATASTRUCT *)lParam;
         POINT pt;
+        HWND  prevhWnd = GetForegroundWindow();
+        HMENU hMenu    = CreatePopupMenu();
         GetCursorPos(&pt);
-
-        HWND prevhWnd = GetForegroundWindow();
         SetForegroundWindow(hWnd);
 
-        HMENU hMenu = CreatePopupMenu();
+        WCHAR buffer[MAX_PATH + 100];
+        WCHAR filename[MAX_PATH];
+        wcscpy_s(filename, ARRAYSIZE(filename), st->lpData);
 
-        TCHAR buffer[MAX_PATH + 100];
-        TCHAR filename[MAX_PATH];
-        ZeroMemory(filename, MAX_PATH * sizeof(TCHAR));
-        memcpy(filename, st->lpData, wcslen(st->lpData) * sizeof(TCHAR));
         PathUnquoteSpacesW(filename);
         PathRemoveExtensionW(filename);
         PathStripPathW(filename);
-        wsprintf(buffer, EXTRACT_NAME, filename);
+        swprintf_s(buffer, ARRAYSIZE(buffer), EXTRACT_NAME, filename);
 
-        InsertMenu(hMenu, 0, MF_BYPOSITION | MF_STRING, 1, buffer);
-        InsertMenu(hMenu, 0, MF_BYPOSITION | MF_STRING, 2, OPEN_NAME);
+        InsertMenuW(hMenu, 0, MF_BYPOSITION | MF_STRING, 1, buffer);
+        InsertMenuW(hMenu, 0, MF_BYPOSITION | MF_STRING, 2, OPEN_NAME);
 
-        INT64* unknown_array = calloc(4, sizeof(INT64));
-        ImmersiveContextMenuHelper_ApplyOwnerDrawToMenuFunc(
-            hMenu,
-            hWnd,
-            &(pt),
-            0xc,
-            unknown_array
-        );
-
-        BOOL res = TrackPopupMenu(
-            hMenu,
-            TPM_RETURNCMD,
-            pt.x - 15,
-            pt.y - 15,
-            0,
-            hWnd,
-            0
-        );
-
-        ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc(
-            hMenu,
-            hWnd,
-            &(pt)
-        );
+        INT64 *unknown_array = calloc(4, sizeof(INT64));
+        ApplyOwnerDrawToMenuFunc(hMenu, (HMENU)hWnd, (HWND)&pt, 0xC, unknown_array);
+        BOOL res = TrackPopupMenu(hMenu, TPM_RETURNCMD, pt.x - 15, pt.y - 15, 0, hWnd, NULL);
+        RemoveOwnerDrawFromMenuFunc(hMenu, (HMENU)hWnd, (HWND)&pt);
         free(unknown_array);
         SetForegroundWindow(prevhWnd);
 
-        if (res == 1 || res == 2)
-        {
-            ZeroMemory(buffer, (MAX_PATH + 100) * sizeof(TCHAR));
-            if (res == 2)
-            {
-                wsprintf(buffer, OPEN_CMD, st->lpData);
-                //wprintf(L"%s\n%s\n\n", st->lpData, buffer);
-            }
-            else if (res == 1)
-            {
-                TCHAR path[MAX_PATH + 1], path_orig[MAX_PATH + 1];
-                ZeroMemory(path, (MAX_PATH + 1) * sizeof(TCHAR));
-                ZeroMemory(path_orig, (MAX_PATH + 1) * sizeof(TCHAR));
-                memcpy(path, st->lpData, wcslen(st->lpData) * sizeof(TCHAR));
-                memcpy(path_orig, st->lpData, wcslen(st->lpData) * sizeof(TCHAR));
+        if (res == 1 || res == 2) {
+            memset(buffer, 0, sizeof buffer);
+
+            if (res == 1) {
+                WCHAR path[MAX_PATH];
+                WCHAR path_orig[MAX_PATH];
+                wcscpy_s(path, ARRAYSIZE(path), st->lpData);
+                wcscpy_s(path_orig, ARRAYSIZE(path_orig), st->lpData);
                 PathUnquoteSpacesW(path_orig);
                 PathRemoveExtensionW(path_orig);
-                wsprintf(buffer, EXTRACT_CMD, path_orig, path);
+                swprintf_s(buffer, ARRAYSIZE(buffer), EXTRACT_CMD, path_orig, path);
+                //wprintf(L"%s\n%s\n\n", st->lpData, buffer);
+            } else if (res == 2) {
+                swprintf_s(buffer, ARRAYSIZE(buffer), OPEN_CMD, (wchar_t *)st->lpData);
                 //wprintf(L"%s\n%s\n\n", st->lpData, buffer);
             }
-            STARTUPINFO si = { sizeof(si) };
+
+            STARTUPINFO si = {.cb = sizeof(si)};
             PROCESS_INFORMATION pi;
-            BOOL b = CreateProcess(
-                NULL,
-                buffer,
-                NULL,
-                NULL,
-                TRUE,
-                CREATE_UNICODE_ENVIRONMENT,
-                NULL,
-                NULL,
-                &si,
-                &pi
-            );
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
+            BOOL b = CreateProcessW(NULL, buffer, NULL, NULL, TRUE,
+                                    CREATE_UNICODE_ENVIRONMENT,
+                                    NULL, NULL, &si, &pi);
+            if (b) {
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+            } else {
+                wprintf(L"Error starting process \"%ls\", code %lu\n", buffer, GetLastError());
+            }
         }
+
         DestroyMenu(hMenu);
         ShowWindow(hWnd, SW_HIDE);
         return 0;
     }
-    else if (uMsg == WM_CLOSE)
-    {
+
+    case WM_CLOSE:
         return 0;
+
+    default:
+        return 1;
     }
-    return 1;
 }
