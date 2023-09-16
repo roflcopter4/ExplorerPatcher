@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _H_SYMBOLS_H_
 #define _H_SYMBOLS_H_
 #include <Windows.h>
