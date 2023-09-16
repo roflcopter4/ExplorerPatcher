@@ -92,8 +92,6 @@ END
 
 IDR_EP_AMD64            RCDATA             "..\\build\\Debug\\ExplorerPatcher.amd64.dll"
 
-IDR_EP_IA32             RCDATA             "..\\build\\Debug\\ExplorerPatcher.IA-32.dll"
-
 IDR_EP_DWM              RCDATA             "..\\build\\Debug\\ep_dwm.exe"
 
 IDR_EP_WEATHER          RCDATA             "..\\build\\Debug\\ep_weather_host.dll"

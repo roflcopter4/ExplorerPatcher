@@ -1,6 +1,7 @@
 #include "../ExplorerPatcher/queryversion.h"
+#include <stdio.h>
 
-int main(int argc, char** argv)
+int main(void)
 {
     SetConsoleOutputCP(CP_UTF8);
 
@@ -11,7 +12,7 @@ int main(int argc, char** argv)
 
     QueryVersionInfo(GetModuleHandle(NULL), VS_VERSION_INFO, &dwLeftMost, &dwSecondLeft, &dwSecondRight, &dwRightMost);
 
-    printf("%d.%d.%d.%d", dwLeftMost, dwSecondLeft, dwSecondRight, dwRightMost);
+    printf("%lu.%lu.%lu.%lu", dwLeftMost, dwSecondLeft, dwSecondRight, dwRightMost);
 
     return 0;
 }

@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <stdio.h>
-#include "../ExplorerPatcher/queryversion.h"
+#include "ExplorerPatcher/queryversion.h"
+#include "ExplorerPatcher/getline.h"
 #define FILE_NAME "CHANGELOG.md"
 #define MAX_LINE_LENGTH 200000
 
