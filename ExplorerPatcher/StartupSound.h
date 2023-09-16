@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _H_STARTUPSOUND_H_
 #define _H_STARTUPSOUND_H_
 #include <initguid.h>

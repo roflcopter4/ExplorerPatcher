@@ -1,4 +1,5 @@
 #include "StartupSound.h"
+#include <stdio.h>
 
 DWORD PlayStartupSound(PlayStartupSoundParams* unused)
 {
