@@ -1,11 +1,11 @@
 #include "lvt.h"
 
+#include "osutility.h"
+
 Windows_UI_Xaml_IDependencyObject* LVT_FindChildByClassName(Windows_UI_Xaml_IDependencyObject* pRootDependencyObject, Windows_UI_Xaml_IVisualTreeHelperStatics* pVisualTreeHelperStatics, LPCWSTR pwszRefName, INT* prevIndex)
 {
     if (!pRootDependencyObject)
-    {
         return NULL;
-    }
 
     //WCHAR wszDebug[MAX_PATH];
     HRESULT hr = S_OK;
@@ -39,16 +39,15 @@ Windows_UI_Xaml_IDependencyObject* LVT_FindChildByClassName(Windows_UI_Xaml_IDep
         }
     }
 
-    if (prevIndex) *prevIndex = Count;
+    if (prevIndex)
+        *prevIndex = Count;
     return NULL;
 }
 
 Windows_UI_Xaml_IDependencyObject* LVT_FindChildByName(Windows_UI_Xaml_IDependencyObject* pRootDependencyObject, Windows_UI_Xaml_IVisualTreeHelperStatics* pVisualTreeHelperStatics, LPCWSTR pwszRefName)
 {
     if (!pRootDependencyObject)
-    {
         return NULL;
-    }
 
     //WCHAR wszDebug[MAX_PATH];
     HRESULT hr = S_OK;
@@ -91,6 +90,10 @@ Windows_UI_Xaml_IDependencyObject* LVT_FindChildByName(Windows_UI_Xaml_IDependen
     return NULL;
 }
 
+/*
+ * FIXME TODO BUG
+ * This belongs in some kind of hall of shame.
+ */
 // Referenece: https://www.reddit.com/r/Windows10/comments/nvcrie/windows_11_start_menu_how_to_temporary_make_your/
 void LVT_StartUI_EnableRoundedCorners(HWND hWnd, DWORD dwReceipe, DWORD dwPos, HWND hWndTaskbar, RECT* rect)
 {
@@ -192,13 +195,9 @@ void LVT_StartUI_EnableRoundedCorners(HWND hWnd, DWORD dwReceipe, DWORD dwPos, H
                         if (rc.left == 0)
                         {
                             if (rc.top == 0)
-                            {
                                 location = LVT_LOC_TOPLEFT;
-                            }
                             else
-                            {
                                 location = LVT_LOC_BOTTOMLEFT;
-                            }
                         }
                         else
                         {
@@ -208,9 +207,7 @@ void LVT_StartUI_EnableRoundedCorners(HWND hWnd, DWORD dwReceipe, DWORD dwPos, H
                     //swprintf_s(wszDebug, MAX_PATH, L"Location: %d\n", location);
                     //OutputDebugStringW(wszDebug);
                     if (pFrameworkElement)
-                    {
                         pFrameworkElement->lpVtbl->Release(pFrameworkElement);
-                    }
                     if (pIUIElement)
                     {
                         pIUIElement->lpVtbl->Release(pIUIElement);
@@ -226,14 +223,9 @@ void LVT_StartUI_EnableRoundedCorners(HWND hWnd, DWORD dwReceipe, DWORD dwPos, H
                             pDropShadow->lpVtbl->QueryInterface(pDropShadow, &IID_Windows_UI_Xaml_IUIElement, &pIUIElement);
                             if (pIUIElement)
                             {
-                                if (dwReceipe)
-                                {
-                                    pIUIElement->lpVtbl->put_Visibility(pIUIElement, Windows_UI_Xaml_Visibility_Collapsed);
-                                }
-                                else
-                                {
-                                    pIUIElement->lpVtbl->put_Visibility(pIUIElement, Windows_UI_Xaml_Visibility_Visible);
-                                }
+                                pIUIElement->lpVtbl->put_Visibility(
+                                    pIUIElement, dwReceipe ? Windows_UI_Xaml_Visibility_Collapsed
+                                                           : Windows_UI_Xaml_Visibility_Visible);
                                 pIUIElement->lpVtbl->Release(pIUIElement);
                             }
                             pDropShadow->lpVtbl->Release(pDropShadow);
@@ -342,98 +334,68 @@ void LVT_StartUI_EnableRoundedCorners(HWND hWnd, DWORD dwReceipe, DWORD dwPos, H
                                             }
                                             // Live tiles corners
                                             Windows_UI_Xaml_IDependencyObject* pRootContent = LVT_FindChildByName(pRootGrid, pVisualTreeHelperStatics, L"RootContent");
-                                            if (pRootContent)
-                                            {
+                                            if (pRootContent) {
                                                 Windows_UI_Xaml_IDependencyObject* pGrid = LVT_FindChildByClassName(pRootContent, pVisualTreeHelperStatics, L"Windows.UI.Xaml.Controls.Grid", NULL);
-                                                if (pGrid)
-                                                {
+                                                if (pGrid) {
                                                     Windows_UI_Xaml_IDependencyObject* pContentRoot = LVT_FindChildByName(pGrid, pVisualTreeHelperStatics, L"ContentRoot");
-                                                    if (pContentRoot)
-                                                    {
+                                                    if (pContentRoot) {
                                                         Windows_UI_Xaml_IDependencyObject* pBorder = LVT_FindChildByClassName(pContentRoot, pVisualTreeHelperStatics, L"Windows.UI.Xaml.Controls.Border", NULL);
-                                                        if (pBorder)
-                                                        {
+                                                        if (pBorder) {
                                                             Windows_UI_Xaml_IDependencyObject* pContentPaneGrid = LVT_FindChildByName(pBorder, pVisualTreeHelperStatics, L"ContentPaneGrid");
-                                                            if (pContentPaneGrid)
-                                                            {
+                                                            if (pContentPaneGrid) {
                                                                 Windows_UI_Xaml_IDependencyObject* pGridPane = LVT_FindChildByName(pContentPaneGrid, pVisualTreeHelperStatics, L"GridPane");
-                                                                if (pGridPane)
-                                                                {
+                                                                if (pGridPane) {
                                                                     Windows_UI_Xaml_IDependencyObject* ppage = LVT_FindChildByName(pGridPane, pVisualTreeHelperStatics, L"page");
-                                                                    if (ppage)
-                                                                    {
+                                                                    if (ppage) {
                                                                         Windows_UI_Xaml_IDependencyObject* pgridRoot = LVT_FindChildByName(ppage, pVisualTreeHelperStatics, L"gridRoot");
-                                                                        if (pgridRoot)
-                                                                        {
+                                                                        if (pgridRoot) {
                                                                             Windows_UI_Xaml_IDependencyObject* pgroupItems = LVT_FindChildByName(pgridRoot, pVisualTreeHelperStatics, L"groupItems");
-                                                                            if (pgroupItems)
-                                                                            {
+                                                                            if (pgroupItems) {
                                                                                 Windows_UI_Xaml_IDependencyObject* pBorder2 = LVT_FindChildByClassName(pgroupItems, pVisualTreeHelperStatics, L"Windows.UI.Xaml.Controls.Border", NULL);
-                                                                                if (pBorder2)
-                                                                                {
+                                                                                if (pBorder2) {
                                                                                     Windows_UI_Xaml_IDependencyObject* pScrollViewer = LVT_FindChildByName(pBorder2, pVisualTreeHelperStatics, L"ScrollViewer");
-                                                                                    if (pScrollViewer)
-                                                                                    {
+                                                                                    if (pScrollViewer) {
                                                                                         Windows_UI_Xaml_IDependencyObject* pBorder3 = LVT_FindChildByClassName(pScrollViewer, pVisualTreeHelperStatics, L"Windows.UI.Xaml.Controls.Border", NULL);
-                                                                                        if (pBorder3)
-                                                                                        {
+                                                                                        if (pBorder3) {
                                                                                             Windows_UI_Xaml_IDependencyObject* pGrid2 = LVT_FindChildByClassName(pBorder3, pVisualTreeHelperStatics, L"Windows.UI.Xaml.Controls.Grid", NULL);
-                                                                                            if (pGrid2)
-                                                                                            {
+                                                                                            if (pGrid2) {
                                                                                                 Windows_UI_Xaml_IDependencyObject* pScrollContentPresenter = LVT_FindChildByName(pGrid2, pVisualTreeHelperStatics, L"ScrollContentPresenter");
-                                                                                                if (pScrollContentPresenter)
-                                                                                                {
+                                                                                                if (pScrollContentPresenter) {
                                                                                                     Windows_UI_Xaml_IDependencyObject* pItemsPresenter = LVT_FindChildByClassName(pScrollContentPresenter, pVisualTreeHelperStatics, L"Windows.UI.Xaml.Controls.ItemsPresenter", NULL);
-                                                                                                    if (pItemsPresenter)
-                                                                                                    {
+                                                                                                    if (pItemsPresenter) {
                                                                                                         Windows_UI_Xaml_IDependencyObject* pTileGrid = LVT_FindChildByClassName(pItemsPresenter, pVisualTreeHelperStatics, L"Windows.UI.Xaml.Controls.TileGrid", NULL);
-                                                                                                        if (pTileGrid)
-                                                                                                        {
+                                                                                                        if (pTileGrid) {
                                                                                                             INT iIndex = 0;
                                                                                                             BOOL bSkipFirst = TRUE;
-                                                                                                            while (TRUE)
-                                                                                                            {
+                                                                                                            while (TRUE) {
                                                                                                                 Windows_UI_Xaml_IDependencyObject* pCurrentGroup = LVT_FindChildByClassName(pTileGrid, pVisualTreeHelperStatics, L"StartUI.TileListViewItem", &iIndex);
                                                                                                                 if (!pCurrentGroup)
-                                                                                                                {
                                                                                                                     break;
-                                                                                                                }
-                                                                                                                if (bSkipFirst)
-                                                                                                                {
+                                                                                                                if (bSkipFirst) {
                                                                                                                     bSkipFirst = FALSE;
                                                                                                                     pCurrentGroup->lpVtbl->Release(pCurrentGroup);
                                                                                                                     continue;
                                                                                                                 }
                                                                                                                 Windows_UI_Xaml_IDependencyObject* pcontentPresenter = LVT_FindChildByName(pCurrentGroup, pVisualTreeHelperStatics, L"contentPresenter");
-                                                                                                                if (pcontentPresenter)
-                                                                                                                {
+                                                                                                                if (pcontentPresenter) {
                                                                                                                     Windows_UI_Xaml_IDependencyObject* pTileGroupViewControl = LVT_FindChildByClassName(pcontentPresenter, pVisualTreeHelperStatics, L"StartUI.TileGroupViewControl", NULL);
-                                                                                                                    if (pTileGroupViewControl)
-                                                                                                                    {
+                                                                                                                    if (pTileGroupViewControl) {
                                                                                                                         Windows_UI_Xaml_IDependencyObject* pGrid3 = LVT_FindChildByClassName(pTileGroupViewControl, pVisualTreeHelperStatics, L"Windows.UI.Xaml.Controls.Grid", NULL);
-                                                                                                                        if (pGrid3)
-                                                                                                                        {
+                                                                                                                        if (pGrid3) {
                                                                                                                             Windows_UI_Xaml_IDependencyObject* pNestedPanel = LVT_FindChildByName(pGrid3, pVisualTreeHelperStatics, L"NestedPanel");
-                                                                                                                            if (pNestedPanel)
-                                                                                                                            {
+                                                                                                                            if (pNestedPanel) {
                                                                                                                                 INT jIndex = 0;
-                                                                                                                                while (TRUE)
-                                                                                                                                {
+                                                                                                                                while (TRUE) {
                                                                                                                                     Windows_UI_Xaml_IDependencyObject* pCurrentTile = LVT_FindChildByClassName(pNestedPanel, pVisualTreeHelperStatics, L"StartUI.TileListViewItem", &jIndex);
                                                                                                                                     if (!pCurrentTile)
-                                                                                                                                    {
                                                                                                                                         break;
-                                                                                                                                    }
                                                                                                                                     Windows_UI_Xaml_IDependencyObject* pcontentPresenter2 = LVT_FindChildByName(pCurrentTile, pVisualTreeHelperStatics, L"contentPresenter");
-                                                                                                                                    if (pcontentPresenter2)
-                                                                                                                                    {
+                                                                                                                                    if (pcontentPresenter2) {
                                                                                                                                         Windows_UI_Xaml_IDependencyObject* pTileViewControl = LVT_FindChildByClassName(pcontentPresenter2, pVisualTreeHelperStatics, L"StartUI.TileViewControl", NULL);
-                                                                                                                                        if (pTileViewControl)
-                                                                                                                                        {
+                                                                                                                                        if (pTileViewControl) {
                                                                                                                                             Windows_UI_Xaml_Controls_IGrid2* pIGrid2 = NULL;
                                                                                                                                             pTileViewControl->lpVtbl->QueryInterface(pTileViewControl, &IID_Windows_UI_Xaml_Controls_IGrid2, &pIGrid2);
-                                                                                                                                            if (pIGrid2)
-                                                                                                                                            {
+                                                                                                                                            if (pIGrid2) {
                                                                                                                                                 Windows_UI_Xaml_CornerRadius cr;
                                                                                                                                                 cr.BottomLeft = (dwReceipe ? 5.0 : 0.0);
                                                                                                                                                 cr.BottomRight = cr.BottomLeft;

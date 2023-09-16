@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _H_LVT_H_
 #define _H_LVT_H_
 #include <initguid.h>
