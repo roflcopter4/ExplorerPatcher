@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _H_OSUTILITY_H_
 #define _H_OSUTILITY_H_
 #include <Windows.h>
@@ -23,25 +24,24 @@
 extern RTL_OSVERSIONINFOW global_rovi;
 extern DWORD32 global_ubr;
 
-inline void InitializeGlobalVersionAndUBR()
+inline void InitializeGlobalVersionAndUBR(void)
 {
     global_ubr = VnGetOSVersionAndUBR(&global_rovi);
 }
 
-inline BOOL IsWindows11()
+inline BOOL IsWindows11(void)
 {
-    if (!global_rovi.dwMajorVersion) global_ubr = VnGetOSVersionAndUBR(&global_rovi);
-    if (global_rovi.dwBuildNumber >= 21996) return TRUE;
-    return FALSE;
+    if (!global_rovi.dwMajorVersion)
+        global_ubr = VnGetOSVersionAndUBR(&global_rovi);
+    return global_rovi.dwBuildNumber >= 21996;
 }
 
-inline BOOL IsDwmExtendFrameIntoClientAreaBrokenInThisBuild()
+inline BOOL IsDwmExtendFrameIntoClientAreaBrokenInThisBuild(void)
 {
     if (!IsWindows11())
-    {
         return FALSE;
-    }
-    if ((global_rovi.dwBuildNumber >= 21996 && global_rovi.dwBuildNumber < 22000) || (global_rovi.dwBuildNumber == 22000 && (global_ubr >= 1 && global_ubr <= 51)))
+    if ((global_rovi.dwBuildNumber >= 21996 && global_rovi.dwBuildNumber < 22000) ||
+        (global_rovi.dwBuildNumber == 22000 && (global_ubr >= 1 && global_ubr <= 51)))
     {
         return TRUE;
     }
@@ -50,31 +50,39 @@ inline BOOL IsDwmExtendFrameIntoClientAreaBrokenInThisBuild()
 
 inline HRESULT SetMicaMaterialForThisWindow(HWND hWnd, BOOL bApply)
 {
-    if (!IsWindows11() || IsDwmExtendFrameIntoClientAreaBrokenInThisBuild()) return S_FALSE;
+    if (!IsWindows11() || IsDwmExtendFrameIntoClientAreaBrokenInThisBuild())
+        return S_FALSE;
     DWORD dwAttribute = (global_rovi.dwBuildNumber >= 22523) ? 38 : DWMWA_MICA_EFFFECT;
-    DWORD dwProp = (bApply ? ((global_rovi.dwBuildNumber >= 22523) ? 2 : 1) : 0);
+    DWORD dwProp      = (bApply ? ((global_rovi.dwBuildNumber >= 22523) ? 2 : 1) : 0);
     return DwmSetWindowAttribute(hWnd, dwAttribute, &dwProp, sizeof(DWORD));
 }
 
-inline BOOL IsWindows11Version22H2OrHigher()
+inline BOOL IsWindows11Version22H2OrHigher(void)
 {
-    if (!global_rovi.dwMajorVersion) global_ubr = VnGetOSVersionAndUBR(&global_rovi);
-    if (global_rovi.dwBuildNumber >= 22621) return TRUE;
+    if (!global_rovi.dwMajorVersion)
+        global_ubr = VnGetOSVersionAndUBR(&global_rovi);
+    if (global_rovi.dwBuildNumber >= 22621)
+        return TRUE;
     return FALSE;
 }
 
-inline BOOL IsWindows11BuildHigherThan25158()
+inline BOOL IsWindows11BuildHigherThan25158(void)
 {
-    if (!global_rovi.dwMajorVersion) global_ubr = VnGetOSVersionAndUBR(&global_rovi);
-    if (global_rovi.dwBuildNumber > 25158) return TRUE;
+    if (!global_rovi.dwMajorVersion)
+        global_ubr = VnGetOSVersionAndUBR(&global_rovi);
+    if (global_rovi.dwBuildNumber > 25158)
+        return TRUE;
     return FALSE;
 }
 
-inline BOOL IsWindows11Version22H2Build1413OrHigher()
+inline BOOL IsWindows11Version22H2Build1413OrHigher(void)
 {
-    if (IsWindows11BuildHigherThan25158()) return TRUE;
-    if (!global_rovi.dwMajorVersion) global_ubr = VnGetOSVersionAndUBR(&global_rovi);
-    if (global_ubr >= 1413) return TRUE;
+    if (IsWindows11BuildHigherThan25158())
+        return TRUE;
+    if (!global_rovi.dwMajorVersion)
+        global_ubr = VnGetOSVersionAndUBR(&global_rovi);
+    if (global_ubr >= 1413)
+        return TRUE;
     return FALSE;
 }
 #endif
