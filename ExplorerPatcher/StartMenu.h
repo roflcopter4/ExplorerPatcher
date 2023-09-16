@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _H_STARTMENU_H_
 #define _H_STARTMENU_H_
 #include <initguid.h>
