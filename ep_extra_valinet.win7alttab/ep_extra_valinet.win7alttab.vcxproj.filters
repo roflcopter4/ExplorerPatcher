@@ -18,13 +18,16 @@
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libs\sws\SimpleWindowSwitcher\sws_WindowHelpers.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\libs\sws\SimpleWindowSwitcher\sws_error.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\libs\sws\SimpleWindowSwitcher\sws_tshwnd.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\sws\SimpleWindowSwitcher\sws_WindowHelpers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\libvalinet\valinet\hooking\iatpatch.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

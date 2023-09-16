@@ -7,12 +7,14 @@ HMODULE hModule = NULL;
 HANDLE sigFinish = NULL;
 void* pFinishProc = NULL;
 
-void done() {
+__declspec(noreturn) static void done(void)
+{
     WaitForSingleObject(sigFinish, INFINITE);
     FreeLibraryAndExitThread(hModule, 0);
 }
 
-void* worker() {
+void* worker(void)
+{
     wchar_t pattern[MAX_PATH];
     GetWindowsDirectoryW(pattern, MAX_PATH);
     wcscat_s(pattern, MAX_PATH, L"\\ep_extra_*.dll");
@@ -46,7 +48,7 @@ void* worker() {
             0xC9, // leave
             0xC3  // ret
         };
-        *(INT64*)(payload + 2) = sigFinish;
+        *(INT64*)(payload + 2)  = sigFinish;
         *(INT64*)(payload + 12) = SetEvent;
 
         pFinishProc = VirtualAlloc(NULL, sizeof(payload), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
@@ -71,12 +73,13 @@ BOOL WINAPI DllMain(
         DisableThreadLibraryCalls(hinstDLL);
         hModule = hinstDLL;
         break;
-    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_ATTACH: // NOLINT(bugprone-branch-clone)
         break;
     case DLL_THREAD_DETACH:
         break;
     case DLL_PROCESS_DETACH:
         break;
+    default:;
     }
     return TRUE;
 }
