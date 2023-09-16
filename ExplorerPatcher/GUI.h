@@ -1,33 +1,37 @@
+#pragma once
 #ifndef _H_GUI_H_
 #define _H_GUI_H_
 #define _CRTDBG_MAP_ALLOC
+
 #include <stdlib.h>
 #include <crtdbg.h>
-#pragma comment(linker,"\"/manifestdependency:type='win32' \
-name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
-processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include <Windows.h>
-#pragma comment(lib, "Version.lib")
+#include <ExDisp.h>
+#include <ShlGuid.h>
 #include <Shlwapi.h>
-#pragma comment(lib, "Shlwapi.lib")
-#include <windowsx.h>
-#include <tlhelp32.h>
-#include <shellscalingapi.h>
-#pragma comment(lib, "Shcore.lib")
-#include <conio.h>
-#include <stdio.h>
 #include <Uxtheme.h>
-#pragma comment(lib, "UxTheme.lib")
+#include <conio.h>
 #include <dwmapi.h>
-#pragma comment(lib, "Dwmapi.lib")
+#include <shellscalingapi.h>
+#include <stdio.h>
+#include <tlhelp32.h>
+#include <windowsx.h>
+
 #include "resource.h"
 #include "getline.h"
 #include "fmemopen.h"
 #include "utility.h"
-#include "../ep_weather_host/ep_weather.h"
-#include "../ep_weather_host/ep_weather_host_h.h"
-#include <ExDisp.h>
-#include <ShlGuid.h>
+#include "ep_weather_host/ep_weather.h"
+#include "ep_weather_host/ep_weather_host_h.h"
+
+#pragma comment(linker,"\"/manifestdependency:type='win32' \
+name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#pragma comment(lib, "Version.lib")
+#pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "Shcore.lib")
+#pragma comment(lib, "UxTheme.lib")
+#pragma comment(lib, "Dwmapi.lib")
 
 #define MAX_LINE_LENGTH 2000
 extern HMODULE hModule;
@@ -62,46 +66,36 @@ extern HMODULE hModule;
 #define GUI_TIMER_READ_REPEAT_SELECTION_TIMEOUT 1000
 #define GUI_TIMER_REFRESH_FOR_PEOPLEBAND 2
 #define GUI_TIMER_REFRESH_FOR_PEOPLEBAND_TIMEOUT 1000
-typedef struct _GUI
-{
-	POINT location;
-	SIZE size;
-	RECT padding;
-	UINT sidebarWidth;
-	HBRUSH hBackgroundBrush;
-	HTHEME hTheme;
-	POINT dpi;
-	MARGINS extent;
-	UINT tabOrder;
-	DWORD bCalcExtent;
-	SIZE_T section;
-	DWORD dwStatusbarY;
-	HICON hIcon;
-	RECT border_thickness;
-	UINT GUI_CAPTION_LINE_HEIGHT;
-	long long LeftClickTime;
-	long long LastClickTime;
-	HMODULE hExplorerFrame;
-	void* pAccPropServices;
-	HWND hAccLabel;
-	BOOL bShouldAnnounceSelected;
-	WCHAR sectionNames[20][20];
-	BOOL bRebuildIfTabOrderIsEmpty;
-	int dwPageLocation;
-	DWORD last_section;
+
+// BUG This structure isn't even used???
+typedef struct GUI {
+    POINT     location;
+    SIZE      size;
+    RECT      padding;
+    UINT      sidebarWidth;
+    HBRUSH    hBackgroundBrush;
+    HTHEME    hTheme;
+    POINT     dpi;
+    MARGINS   extent;
+    UINT      tabOrder;
+    DWORD     bCalcExtent;
+    SIZE_T    section;
+    DWORD     dwStatusbarY;
+    HICON     hIcon;
+    RECT      border_thickness;
+    UINT      GUI_CAPTION_LINE_HEIGHT;
+    long long LeftClickTime;
+    long long LastClickTime;
+    HMODULE   hExplorerFrame;
+    void     *pAccPropServices;
+    HWND      hAccLabel;
+    BOOL      bShouldAnnounceSelected;
+    WCHAR     sectionNames[20][20];
+    BOOL      bRebuildIfTabOrderIsEmpty;
+    int       dwPageLocation;
+    DWORD     last_section;
 } GUI;
 
-static HRESULT GUI_AboutProc(
-	HWND hwnd,
-	UINT uNotification,
-	WPARAM wParam,
-	LPARAM lParam,
-	LONG_PTR lpRefData
-);
-
-static BOOL GUI_Build(HDC hDC, HWND hWnd);
-
-static LRESULT CALLBACK GUI_WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
 __declspec(dllexport) int ZZGUI(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
+
 #endif
