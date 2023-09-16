@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _H_SETTINGSMONITOR_H_
 #define _H_SETTINGSMONITOR_H_
 #include <Windows.h>
