@@ -15,14 +15,12 @@ BOOL start_GetProductInfo(DWORD dwOSMajorVersion, DWORD dwOSMinorVersion, DWORD 
     return TRUE;
 }
 
-void Init()
+void Init(void)
 {
     DWORD dwStartShowClassicMode = 0, dwSize = sizeof(DWORD);
     RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"Start_ShowClassicMode", RRF_RT_DWORD, NULL, &dwStartShowClassicMode, &dwSize);
     if (dwStartShowClassicMode)
-    {
         VnPatchIAT(GetModuleHandleW(NULL), "api-ms-win-core-sysinfo-l1-2-0.dll", "GetProductInfo", start_GetProductInfo);
-    }
     HMODULE hMod;
     GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, hModule, &hMod);
     bInstanced = TRUE;
