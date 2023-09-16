@@ -32,6 +32,9 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+build/
+[Cc]lang[Dd]ebug/
+[Cc]lang[Rr]elease/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
