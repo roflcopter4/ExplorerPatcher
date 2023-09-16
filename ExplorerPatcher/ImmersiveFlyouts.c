@@ -1,4 +1,5 @@
 #include "ImmersiveFlyouts.h"
+#include <Shlwapi.h>
 
 void InvokeActionCenter()
 {
