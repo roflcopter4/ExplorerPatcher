@@ -68,6 +68,8 @@ NTSTATUS ExplorerPatcher_ComputeFileHash(
     _Out_writes_z_(hashSize) LPSTR   hash,
     _In_                     SIZE_T  hashSize);
 
+char *ExplorerPatcher_GetWin32ErrorMessage(DWORD error);
+
 EXTERN_C_END
 
 /****************************************************************************************/
