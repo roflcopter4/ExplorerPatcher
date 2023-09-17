@@ -85,7 +85,7 @@ LRESULT CALLBACK OpenStartOnCurentMonitorThreadHook(int code, WPARAM wParam, LPA
                 POINT pt;
                 pt.x = GET_X_LPARAM(pts);
                 pt.y = GET_Y_LPARAM(pts);
-                printf("!! %d %d\n", pt.x, pt.y);
+                printf("!! %ld %ld\n", pt.x, pt.y);
                 monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONULL);
             } else {
                 MonitorOverrideData mod;
@@ -349,7 +349,7 @@ DWORD WINAPI HookStartMenu(HookStartMenuParams *params)
         DWORD dwExitCode = 10;
         GetExitCodeThread(hThread, &dwExitCode);
         CloseHandle(hThread);
-        printf("[StartMenu] Library initialization returned: 0x%x.\n", dwExitCode);
+        printf("[StartMenu] Library initialization returned: 0x%lx.\n", dwExitCode);
 
         WaitForSingleObject(hProcess, INFINITE);
         CloseHandle(hProcess);
@@ -566,15 +566,15 @@ BOOL NeedsRo_PositionStartMenuForMonitor(HMONITOR hMonitor, HDC unused1, LPRECT 
                 pTaskbarLayoutManager, hMonitor, &instanceof_WindowsUdk_UI_Shell_ITaskbarSettings, NULL
             );
             data->pMonitorList[InterlockedIncrement(data->pMonitorCount) - 1] = hMonitor;
-            printf("[Positioning] Added settings for monitor %p : %d\n", hMonitor, data->location);
+            printf("[Positioning] Added settings for monitor %p : %lu\n", (void *)hMonitor, data->location);
         } else if (data->operation == STARTMENU_POSITIONING_OPERATION_CHANGE) {
             hr = pTaskbarLayoutManager->lpVtbl->ReportSettingsForMonitor(
                 pTaskbarLayoutManager, hMonitor, &instanceof_WindowsUdk_UI_Shell_ITaskbarSettings
             );
-            printf("[Positioning] Changed settings for monitor: %p : %d\n", hMonitor, data->location);
+            printf("[Positioning] Changed settings for monitor: %p : %lu\n", (void *)hMonitor, data->location);
         } else if (data->operation == STARTMENU_POSITIONING_OPERATION_REMOVE) {
             hr = pTaskbarLayoutManager->lpVtbl->ReportMonitorRemoved(pTaskbarLayoutManager, hMonitor);
-            printf("[Positioning] Removed settings for monitor: %p\n", hMonitor);
+            printf("[Positioning] Removed settings for monitor: %p\n", (void *)hMonitor);
         }
     }
 
