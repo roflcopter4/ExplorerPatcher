@@ -741,7 +741,7 @@ int WINAPI wWinMain(
         }
 
         SHGetFolderPathW(NULL, SPECIAL_FOLDER, NULL, SHGFP_TYPE_CURRENT, wszPath);
-        //wcscat_s(wszPath, MAX_PATH, APP_RELATIVE_PATH L"\\" PRODUCT_NAME L".IA-32.dll");
+        wcscat_s(wszPath, MAX_PATH, APP_RELATIVE_PATH L"\\" PRODUCT_NAME L".IA-32.dll");
         //bOk = InstallResource(bInstall, hInstance, IDR_EP_IA32, wszPath);
     }
     if (bOk) {
