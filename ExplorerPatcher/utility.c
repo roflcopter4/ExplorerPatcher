@@ -169,8 +169,8 @@ LRESULT CALLBACK BalloonWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
             .dwInfoFlags = NIIF_INFO,
             .uTimeout    = 2000,
         };
-        _tcscpy_s(ni.szInfo, _countof(ni.szInfo), lpCs->lpCreateParams),
-        _tcscpy_s(ni.szInfoTitle, _countof(ni.szInfoTitle), _T("ExplorerPatcher"));
+        wcscpy_s(ni.szInfo, _countof(ni.szInfo), lpCs->lpCreateParams),
+        wcscpy_s(ni.szInfoTitle, _countof(ni.szInfoTitle), L"ExplorerPatcher");
 
         Shell_NotifyIcon(NIM_ADD, &ni);
         free(lpCs->lpCreateParams);
@@ -199,24 +199,24 @@ ZZTestBalloon(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow)
         .cbClsExtra    = 0,
         .cbWndExtra    = 0,
         .hInstance     = hInstance,
-        .hIcon         = LoadIcon(NULL, IDI_APPLICATION),
-        .hCursor       = LoadCursor(NULL, IDC_ARROW),
+        .hIcon         = LoadIconW(NULL, IDI_APPLICATION),
+        .hCursor       = LoadCursorW(NULL, IDC_ARROW),
         .hbrBackground = (HBRUSH)(COLOR_WINDOW + 1),
         .lpszMenuName  = NULL,
         .lpszClassName = L"ExplorerPatcherBalloon",
-        .hIconSm       = LoadIcon(NULL, IDI_APPLICATION),
+        .hIconSm       = LoadIconW(NULL, IDI_APPLICATION),
     };
 
-    if (!RegisterClassEx(&wc))
+    if (!RegisterClassExW(&wc))
         return 0;
 
-    HWND hwnd = CreateWindowEx(0, L"ExplorerPatcherBalloon", L"",
-                               0, 0, 0, 0, 0, HWND_MESSAGE, NULL,
-                               hInstance, lpwszCmdLine);
+    HWND hwnd = CreateWindowExW(0, L"ExplorerPatcherBalloon", L"",
+                                0, 0, 0, 0, 0, HWND_MESSAGE, NULL,
+                                hInstance, lpwszCmdLine);
 
-    while (GetMessage(&msg, NULL, 0, 0) > 0) {
+    while (GetMessageW(&msg, NULL, 0, 0) > 0) {
         TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        DispatchMessageW(&msg);
     }
 
     return 1;
@@ -241,10 +241,13 @@ ZZTestToast(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow)
     if (!lpwszCmdLine) exit(0);
     size_t numChConv = 0;
     mbstowcs_s(&numChConv, lpwszCmdLine, strlen(lpszCmdLine) + 1, lpszCmdLine, strlen(lpszCmdLine) + 1);
-    WCHAR* buffer = calloc((sizeof(TestToastXML) / sizeof(wchar_t) + strlen(lpszCmdLine) + 10), sizeof(WCHAR));
+
+    size_t const buflen = _countof(TestToastXML) + strlen(lpszCmdLine) + 10;
+    WCHAR* buffer = malloc(buflen * sizeof(WCHAR));
+
     if (buffer)
     {
-        swprintf_s(buffer, ARRAYSIZE(buffer), TestToastXML, L"short", lpwszCmdLine);
+        swprintf_s(buffer, buflen, TestToastXML, L"short", lpwszCmdLine);
         HRESULT hr = S_OK;
         __x_ABI_CWindows_CData_CXml_CDom_CIXmlDocument* inputXml = NULL;
         hr = String2IXMLDocument(
@@ -278,13 +281,13 @@ ZZLaunchExplorer(HWND hWnd, HINSTANCE hInstance, PWCHAR lpszCmdLine, int nCmdSho
     WCHAR wszExplorerPath[MAX_PATH + 1];
 
     Sleep(100);
-    GetWindowsDirectory(wszExplorerPath, MAX_PATH + 1);
-    _tcscat_s(wszExplorerPath, MAX_PATH + 1, TEXT("\\explorer.exe"));
+    GetWindowsDirectoryW(wszExplorerPath, MAX_PATH + 1);
+    wcscat_s(wszExplorerPath, MAX_PATH + 1, L"\\explorer.exe");
 
     PROCESS_INFORMATION pi;
     STARTUPINFO         si = {.cb = sizeof si};
-    CreateProcess(NULL, wszExplorerPath, NULL, NULL, TRUE,
-                  CREATE_UNICODE_ENVIRONMENT, NULL, NULL, &si, &pi);
+    CreateProcessW(NULL, wszExplorerPath, NULL, NULL, TRUE,
+                   CREATE_UNICODE_ENVIRONMENT, NULL, NULL, &si, &pi);
     FreeConsole();
     TerminateProcess(OpenProcess(PROCESS_TERMINATE, FALSE, GetCurrentProcessId()), 0);
 }
@@ -537,37 +540,17 @@ int ComputeFileHash2(HMODULE hModule, LPCWSTR filename, LPSTR hash, DWORD dwHash
 void LaunchPropertiesGUI(HMODULE hModule)
 {
     //CreateThread(0, 0, ZZGUI, 0, 0, 0);
-    wchar_t wszPath[MAX_PATH * 2];
-    ZeroMemory(
-        wszPath,
-        (MAX_PATH * 2) * sizeof(wchar_t)
-    );
+    wchar_t wszPath[MAX_PATH * 2] = {0};
     wszPath[0] = '\"';
-    GetSystemDirectoryW(
-        wszPath + 1,
-        MAX_PATH
-    );
-    wcscat_s(
-        wszPath,
-        MAX_PATH * 2,
-        L"\\rundll32.exe\" \""
-    );
-    GetModuleFileNameW(
-        hModule,
-        wszPath + wcslen(wszPath),
-        MAX_PATH
-    );
-    wcscat_s(
-        wszPath,
-        MAX_PATH * 2,
-        L"\",ZZGUI"
-    );
+    GetSystemDirectoryW(wszPath + 1, MAX_PATH);
+    wcscat_s(wszPath, MAX_PATH * 2, L"\\rundll32.exe\" \"");
+    GetModuleFileNameW(hModule, wszPath + wcslen(wszPath), MAX_PATH);
+    wcscat_s(wszPath, MAX_PATH * 2, L"\",ZZGUI");
     wprintf(L"Launching : %ls\n", wszPath);
-    STARTUPINFO si;
-    ZeroMemory(&si, sizeof(STARTUPINFO));
-    si.cb = sizeof(si);
+
+    STARTUPINFO si = {.cb = sizeof(si)};
     PROCESS_INFORMATION pi;
-    ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
+
     if (CreateProcessW(
         NULL, wszPath, NULL, NULL, FALSE,
         CREATE_UNICODE_ENVIRONMENT,
@@ -593,8 +576,7 @@ BOOL SystemShutdown(BOOL reboot)
 
     // Get the LUID for the shutdown privilege. 
 
-    LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME,
-        &tkp.Privileges[0].Luid);
+    LookupPrivilegeValueW(NULL, SE_SHUTDOWN_NAME, &tkp.Privileges[0].Luid);
 
     tkp.PrivilegeCount = 1;  // one privilege to set    
     tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
@@ -770,7 +752,7 @@ LSTATUS RegisterDWMService(DWORD dwDesiredState, DWORD dwOverride)
 
     WCHAR wszRundll32[MAX_PATH];
     SHGetFolderPathW(NULL, SPECIAL_FOLDER, NULL, SHGFP_TYPE_CURRENT, wszRundll32);
-    wcscat_s(wszRundll32, MAX_PATH, _T(APP_RELATIVE_PATH));
+    wcscat_s(wszRundll32, MAX_PATH, L"" APP_RELATIVE_PATH);
     wcscat_s(wszRundll32, MAX_PATH, L"\\ep_dwm.exe");
 
     WCHAR wszEP[MAX_PATH];
@@ -786,14 +768,14 @@ LSTATUS RegisterDWMService(DWORD dwDesiredState, DWORD dwOverride)
         wszArgumentsRegister,
         MAX_PATH * 10,
         L"/c \""
-        L"\"%s\" create " _T(EP_DWM_SERVICENAME)
+        L"\"%s\" create " EP_DWM_SERVICENAME
         L" binPath= \"\\\"%s\\\" %s\" DisplayName= \"ExplorerPatcher Desktop Window Manager Service\" start= auto & "
-        L"\"%s\" description " _T(EP_DWM_SERVICENAME)
+        L"\"%s\" description " EP_DWM_SERVICENAME
         L" \"Service for managing aspects related to the Desktop Window Manager.\" & "
-        L"\"%s\" %s " _T(EP_DWM_SERVICENAME) L"\"",
+        L"\"%s\" %s " EP_DWM_SERVICENAME L"\"",
         wszSCPath,
         wszRundll32,
-        _T(EP_DWM_SERVICENAME) L" " _T(EP_DWM_EVENTNAME),
+        EP_DWM_SERVICENAME L" " EP_DWM_EVENTNAME,
         wszSCPath,
         wszSCPath,
         (!dwOverride || dwOverride == 3) ? L"start" : L"query"
@@ -804,8 +786,8 @@ LSTATUS RegisterDWMService(DWORD dwDesiredState, DWORD dwOverride)
         wszArgumentsUnRegister,
         MAX_PATH * 10,
         L"/c \""
-        L"\"%s\" stop " _T(EP_DWM_SERVICENAME) L" & "
-        L"\"%s\" delete " _T(EP_DWM_SERVICENAME) L" & "
+        L"\"%s\" stop " EP_DWM_SERVICENAME L" & "
+        L"\"%s\" delete " EP_DWM_SERVICENAME L" & "
         L"\"",
         wszSCPath,
         wszSCPath
@@ -816,7 +798,7 @@ LSTATUS RegisterDWMService(DWORD dwDesiredState, DWORD dwOverride)
     if (dwOverride) {
         bAreRoundedCornersDisabled = !(dwOverride - 1);
     } else {
-        HANDLE h_exists = CreateEventW(NULL, FALSE, FALSE, _T(EP_DWM_EVENTNAME));
+        HANDLE h_exists = CreateEventW(NULL, FALSE, FALSE, L"" EP_DWM_EVENTNAME);
         if (h_exists) {
             bAreRoundedCornersDisabled = GetLastError() == ERROR_ALREADY_EXISTS;
             CloseHandle(h_exists);
@@ -1445,7 +1427,7 @@ BOOL DownloadAndInstallWebView2Runtime()
                     WCHAR wszPath[MAX_PATH];
                     ZeroMemory(wszPath, MAX_PATH * sizeof(WCHAR));
                     SHGetFolderPathW(NULL, SPECIAL_FOLDER_LEGACY, NULL, SHGFP_TYPE_CURRENT, wszPath);
-                    wcscat_s(wszPath, MAX_PATH, _T(APP_RELATIVE_PATH));
+                    wcscat_s(wszPath, MAX_PATH, L"" APP_RELATIVE_PATH);
                     BOOL bRet = CreateDirectoryW(wszPath, NULL);
                     if (bRet || (!bRet && GetLastError() == ERROR_ALREADY_EXISTS))
                     {
@@ -1456,17 +1438,18 @@ BOOL DownloadAndInstallWebView2Runtime()
                         {
                             fwrite(exe_buffer, 1, dwRead, f);
                             fclose(f);
-                            SHELLEXECUTEINFOW sei;
-                            ZeroMemory(&sei, sizeof(SHELLEXECUTEINFOW));
-                            sei.cbSize = sizeof(sei);
-                            sei.fMask = SEE_MASK_NOCLOSEPROCESS;
-                            sei.hwnd = NULL;
-                            sei.hInstApp = NULL;
-                            sei.lpVerb = NULL;
-                            sei.lpFile = wszPath;
-                            sei.lpParameters = L"";
-                            sei.hwnd = NULL;
-                            sei.nShow = SW_SHOWMINIMIZED;
+                            SHELLEXECUTEINFOW sei = {
+                                .cbSize = sizeof(sei),
+                                .fMask = SEE_MASK_NOCLOSEPROCESS,
+                                .hwnd = NULL,
+                                .hInstApp = NULL,
+                                .lpVerb = NULL,
+                                .lpFile = wszPath,
+                                .lpParameters = L"",
+                                .hwnd = NULL,
+                                .nShow = SW_SHOWMINIMIZED,
+                            };
+
                             if (ShellExecuteExW(&sei) && sei.hProcess)
                             {
                                 WaitForSingleObject(sei.hProcess, INFINITE);
@@ -1621,14 +1604,15 @@ void SpotlightHelper(DWORD dwOp, HWND hWnd, HMENU hMenu, LPPOINT pPt)
                             int iCmd = TrackPopupMenuEx(hMenu2, TPM_RETURNCMD, pPt->x, pPt->y, hWnd, NULL);
                             if (iCmd > 0)
                             {
-                                CMINVOKECOMMANDINFOEX info = { 0 };
-                                info.cbSize = sizeof(info);
-                                info.fMask = CMIC_MASK_UNICODE | CMIC_MASK_PTINVOKE;
-                                info.hwnd = hWnd;
-                                info.lpVerb = MAKEINTRESOURCEA(iCmd - SCRATCH_QCM_FIRST);
-                                info.lpVerbW = MAKEINTRESOURCEW(iCmd - SCRATCH_QCM_FIRST);
-                                info.nShow = SW_SHOWNORMAL;
-                                info.ptInvoke = *pPt;
+                                CMINVOKECOMMANDINFOEX info = { 
+                                    .cbSize   = sizeof(info),
+                                    .fMask    = CMIC_MASK_UNICODE | CMIC_MASK_PTINVOKE,
+                                    .hwnd     = hWnd,
+                                    .lpVerb   = MAKEINTRESOURCEA(iCmd - SCRATCH_QCM_FIRST),
+                                    .lpVerbW  = MAKEINTRESOURCEW(iCmd - SCRATCH_QCM_FIRST),
+                                    .nShow    = SW_SHOWNORMAL,
+                                    .ptInvoke = *pPt,
+                                };
                                 pcm->lpVtbl->InvokeCommand(pcm, &info);
                             }
                         }
@@ -1797,7 +1781,7 @@ void BeginExplorerRestart(void)
     if (RmStartSession(&RmSession, 0, RmSessionKey) == ERROR_SUCCESS)
     {
         RM_UNIQUE_PROCESS rgApplications[] = { GetExplorerApplication() };
-        RmRegisterResources(RmSession, 0, 0, 1, rgApplications, 0, 0);
+        RmRegisterResources(RmSession, 0, NULL, 1, rgApplications, 0, NULL);
 
         DWORD           rebootReason;
         UINT            nProcInfoNeeded, nProcInfo = 16;
@@ -1888,7 +1872,7 @@ BOOL StartExplorer(void)
     {
         do
         {
-            if (!wcscmp(pe32.szExeFile, TEXT("explorer.exe")))
+            if (!wcscmp(pe32.szExeFile, L"explorer.exe"))
             {
                 HANDLE hSihost = OpenProcess(
                     PROCESS_TERMINATE,
