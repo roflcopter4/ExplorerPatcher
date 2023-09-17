@@ -27,7 +27,7 @@ BOOL IsUpdatePolicy(LPCWSTR wszDataStore, DWORD dwUpdatePolicy)
         dwSize = sizeof(DWORD);
         RegQueryValueExW(
             hKey,
-            TEXT("UpdatePolicy"),
+            L"UpdatePolicy",
             0,
             NULL,
             &dwQueriedPolicy,
@@ -191,12 +191,8 @@ BOOL IsUpdateAvailableHelper(
                 DWORD dwRead = 0;
                 char hash[DOSMODE_OFFSET + UPDATES_HASH_SIZE + 1];
                 ZeroMemory(hash, DOSMODE_OFFSET + UPDATES_HASH_SIZE + 1);
-                if (bRet = InternetReadFile(
-                    hConnect,
-                    hash,
-                    DOSMODE_OFFSET + UPDATES_HASH_SIZE,
-                    &dwRead
-                ) && dwRead == DOSMODE_OFFSET + UPDATES_HASH_SIZE)
+                if ((bRet = InternetReadFile(hConnect, hash, DOSMODE_OFFSET + UPDATES_HASH_SIZE, &dwRead) &&
+                            dwRead == DOSMODE_OFFSET + UPDATES_HASH_SIZE))
                 {
 #ifdef UPDATES_VERBOSE_OUTPUT
                     printf("[Updates] Hash of remote file is \"%s\" (%s).\n", DOSMODE_OFFSET + hash, (hash[0] == 0x4D && hash[1] == 0x5A) ? "valid" : "invalid");
@@ -328,7 +324,7 @@ BOOL IsUpdateAvailableHelper(
                                                     }
                                                 }
                                                 DWORD dwAllowDowngrades = FALSE, dwSize = sizeof(DWORD);
-                                                RegGetValueW(HKEY_CURRENT_USER, _T(REGPATH), L"UpdateAllowDowngrades", RRF_RT_DWORD, NULL, &dwAllowDowngrades, &dwSize);
+                                                RegGetValueW(HKEY_CURRENT_USER, L"" REGPATH, L"UpdateAllowDowngrades", RRF_RT_DWORD, NULL, &dwAllowDowngrades, &dwSize);
                                                 if ((res == 1 && dwAllowDowngrades) || res == -1)
                                                 {
                                                     bIsUpdateAvailable = TRUE;
@@ -363,7 +359,7 @@ BOOL IsUpdateAvailableHelper(
                 else
                 {
 #ifdef UPDATES_VERBOSE_OUTPUT
-                    printf("[Updates] Failed. Read %d bytes.\n", dwRead);
+                    wprintf(L"[Updates] Failed. Read %lu bytes.\n", dwRead);
 #endif
                     if (lpFail) *lpFail = TRUE;
                 }
@@ -373,11 +369,11 @@ BOOL IsUpdateAvailableHelper(
                 WCHAR wszPath[MAX_PATH];
                 ZeroMemory(wszPath, MAX_PATH * sizeof(WCHAR));
                 SHGetFolderPathW(NULL, SPECIAL_FOLDER_LEGACY, NULL, SHGFP_TYPE_CURRENT, wszPath);
-                wcscat_s(wszPath, MAX_PATH, _T(APP_RELATIVE_PATH));
+                wcscat_s(wszPath, MAX_PATH, L"" APP_RELATIVE_PATH);
                 BOOL bRet = CreateDirectoryW(wszPath, NULL);
                 if (bRet || (!bRet && GetLastError() == ERROR_ALREADY_EXISTS))
                 {
-                    wcscat_s(wszPath, MAX_PATH, L"\\Update for " _T(PRODUCT_NAME) L" from ");
+                    wcscat_s(wszPath, MAX_PATH, L"\\Update for " PRODUCT_NAME L" from ");
                     WCHAR wszURL[MAX_PATH];
                     ZeroMemory(wszURL, MAX_PATH * sizeof(WCHAR));
                     MultiByteToWideChar(
@@ -415,7 +411,7 @@ BOOL IsUpdateAvailableHelper(
                     }
                     wcscat_s(wszPath, MAX_PATH, wszURL);
 #ifdef UPDATES_VERBOSE_OUTPUT
-                    wprintf(L"[Updates] Download path is \"%s\".\n", wszPath);
+                    wprintf(L"[Updates] Download path is \"%ls\".\n", wszPath);
 #endif
 
                     BOOL bRet = DeleteFileW(wszPath);
@@ -444,12 +440,12 @@ BOOL IsUpdateAvailableHelper(
                                     {
                                         bIsUpdateAvailable = TRUE;
 #ifdef UPDATES_VERBOSE_OUTPUT
-                                        printf("[Updates] Downloaded finished.\n");
+                                        wprintf(L"[Updates] Downloaded finished.\n");
 #endif
                                         break;
                                     }
 #ifdef UPDATES_VERBOSE_OUTPUT
-                                    printf("[Updates] Downloaded %d bytes.\n", dwRead);
+                                    wprintf(L"[Updates] Downloaded %lu bytes.\n", dwRead);
 #endif
                                     fwrite(
                                         buffer,
@@ -467,10 +463,10 @@ BOOL IsUpdateAvailableHelper(
                         {
                             bIsUpdateAvailable = FALSE;
 #ifdef UPDATES_VERBOSE_OUTPUT
-                            printf(
-                                "[Updates] In order to install this update for the product \""
+                            wprintf(
+                                L"[Updates] In order to install this update for the product \""
                                 PRODUCT_NAME
-                                "\", please allow the request.\n"
+                                L"\", please allow the request.\n"
                             );
 #endif
 
@@ -545,11 +541,11 @@ BOOL IsUpdateAvailableHelper(
                                 );
 
                                 WCHAR wszMsg[500];
-                                swprintf_s(wszMsg, 500, L"Would you like to install an update for " _T(PRODUCT_NAME) L"?\n\nDownloaded from:\n%s", wszURL2);
+                                swprintf_s(wszMsg, 500, L"Would you like to install an update for " PRODUCT_NAME L"?\n\nDownloaded from:\n%ls", wszURL2);
                                 if (MessageBoxW(
-                                    FindWindowW(L"ExplorerPatcher_GUI_" _T(EP_CLSID), NULL),
+                                    FindWindowW(L"ExplorerPatcher_GUI_" EP_CLSID, NULL),
                                     wszMsg,
-                                    _T(PRODUCT_NAME),
+                                    L"" PRODUCT_NAME,
                                     MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION
                                 ) == IDNO)
                                 {
@@ -576,14 +572,14 @@ BOOL IsUpdateAvailableHelper(
                                 {
                                     bIsUpdateAvailable = TRUE;
 #ifdef UPDATES_VERBOSE_OUTPUT
-                                    printf("[Updates] Update successful, File Explorer will probably restart momentarly.\n");
+                                    wprintf(L"[Updates] Update successful, File Explorer will probably restart momentarily.\n");
 #endif
                                 }
                                 else
                                 {
                                     SetLastError(dwExitCode);
 #ifdef UPDATES_VERBOSE_OUTPUT
-                                    printf("[Updates] Update failed because the following error has occured: %d.\n", dwExitCode);
+                                    wprintf(L"[Updates] Update failed because the following error has occurred: %lu.\n", dwExitCode);
 #endif
                                 }
                                 CloseHandle(ShExecInfo.hProcess);
@@ -594,13 +590,13 @@ BOOL IsUpdateAvailableHelper(
                                 if (dwError == ERROR_CANCELLED)
                                 {
 #ifdef UPDATES_VERBOSE_OUTPUT
-                                    printf("[Updates] Update failed because the request was denied.\n");
+                                    wprintf(L"[Updates] Update failed because the request was denied.\n");
 #endif
                                 }
                                 else
                                 {
 #ifdef UPDATES_VERBOSE_OUTPUT
-                                    printf("[Updates] Update failed because the following error has occured: %d.\n", GetLastError());
+                                    wprintf(L"[Updates] Update failed because the following error has occurred: %lu.\n", GetLastError());
 #endif
                                 }
                             }
@@ -690,7 +686,7 @@ BOOL IsUpdateAvailable(LPCWSTR wszDataStore, char* szCheckAgainst, BOOL* lpFail,
             );
             if (dwSize == 1 && wszInfoURL[0] == 0)
             {
-                wcscat_s(wszInfoURL, dwInfoURLLen, _T(UPDATES_RELEASE_INFO_URL_STABLE));
+                wcscat_s(wszInfoURL, dwInfoURLLen, L"" UPDATES_RELEASE_INFO_URL_STABLE);
             }
         }
         dwSize = sizeof(DWORD);
@@ -872,7 +868,7 @@ BOOL ShowUpdateSuccessNotification(
     __x_ABI_CWindows_CData_CXml_CDom_CIXmlDocument* inputXml = NULL;
     const wchar_t text[] =
         L"<toast scenario=\"reminder\" "
-        L"activationType=\"protocol\" launch=\"" _T(UPDATES_RELEASE_INFO_URL) L"\" duration=\"short\">\r\n"
+        L"activationType=\"protocol\" launch=\"" UPDATES_RELEASE_INFO_URL L"\" duration=\"short\">\r\n"
         L"	<visual>\r\n"
         L"		<binding template=\"ToastGeneric\">\r\n"
         L"			<text><![CDATA[Update successful]]></text>\r\n"
@@ -926,7 +922,7 @@ BOOL InstallUpdatesIfAvailable(
 {
     wchar_t wszInfoURL[MAX_PATH];
     ZeroMemory(wszInfoURL, MAX_PATH * sizeof(wchar_t));
-    wcscat_s(wszInfoURL, MAX_PATH, _T(UPDATES_RELEASE_INFO_URL_STABLE));
+    wcscat_s(wszInfoURL, MAX_PATH, L"" UPDATES_RELEASE_INFO_URL_STABLE);
     wchar_t buf[TOAST_BUFSIZ];
     DWORD dwLeftMost = 0;
     DWORD dwSecondLeft = 0;
@@ -963,7 +959,7 @@ BOOL InstallUpdatesIfAvailable(
     {
         const wchar_t text[] =
             L"<toast scenario=\"reminder\" "
-            L"activationType=\"protocol\" launch=\"" _T(UPDATES_RELEASE_INFO_URL) L"\" duration=\"long\">\r\n"
+            L"activationType=\"protocol\" launch=\"" UPDATES_RELEASE_INFO_URL L"\" duration=\"long\">\r\n"
             L"	<visual>\r\n"
             L"		<binding template=\"ToastGeneric\">\r\n"
             L"			<text><![CDATA[Downloading and installing updates]]></text>\r\n"
@@ -985,7 +981,7 @@ BOOL InstallUpdatesIfAvailable(
     {
         const wchar_t text[] =
             L"<toast scenario=\"reminder\" "
-            L"activationType=\"protocol\" launch=\"" _T(UPDATES_RELEASE_INFO_URL) L"\" duration=\"long\">\r\n"
+            L"activationType=\"protocol\" launch=\"" UPDATES_RELEASE_INFO_URL L"\" duration=\"long\">\r\n"
             L"	<visual>\r\n"
             L"		<binding template=\"ToastGeneric\">\r\n"
             L"			<text><![CDATA[Checking for updates]]></text>\r\n"
@@ -1039,20 +1035,20 @@ BOOL InstallUpdatesIfAvailable(
 
     BOOL bFail = FALSE;
     dwLeftMost = 0; dwSecondLeft = 0; dwSecondRight = 0; dwRightMost = 0;
-    if (IsUpdateAvailable(_T(REGPATH), hash, &bFail, wszInfoURL, MAX_PATH, hModule, &dwLeftMost, &dwSecondLeft, &dwSecondRight, &dwRightMost))
+    if (IsUpdateAvailable(L"" REGPATH, hash, &bFail, wszInfoURL, MAX_PATH, hModule, &dwLeftMost, &dwSecondLeft, &dwSecondRight, &dwRightMost))
     {
         printf("[Updates] An update is available.\n");
         if ((dwOperation == UPDATES_OP_DEFAULT && dwUpdatePolicy == UPDATE_POLICY_AUTO) || (dwOperation == UPDATES_OP_INSTALL))
         {
             __x_ABI_CWindows_CData_CXml_CDom_CIXmlDocument* inputXml = NULL;
-            BOOL bOk = UpdateProduct(_T(REGPATH), notifier, notifFactory, toast, hModule);
+            BOOL bOk = UpdateProduct(L"" REGPATH, notifier, notifFactory, toast, hModule);
             if (!bOk)
             {
                 if (dwOperation == UPDATES_OP_INSTALL)
                 {
                     const wchar_t text[] =
                         L"<toast scenario=\"reminder\" "
-                        L"activationType=\"protocol\" launch=\"" _T(UPDATES_RELEASE_INFO_URL) L"\" duration=\"short\">\r\n"
+                        L"activationType=\"protocol\" launch=\"" UPDATES_RELEASE_INFO_URL L"\" duration=\"short\">\r\n"
                         L"	<visual>\r\n"
                         L"		<binding template=\"ToastGeneric\">\r\n"
                         L"			<text><![CDATA[Update failed]]></text>\r\n"
@@ -1165,7 +1161,7 @@ BOOL InstallUpdatesIfAvailable(
         {
             const wchar_t text[] =
                 L"<toast scenario=\"reminder\" "
-                L"activationType=\"protocol\" launch=\"" _T(UPDATES_RELEASE_INFO_URL) L"\" duration=\"short\">\r\n"
+                L"activationType=\"protocol\" launch=\"" UPDATES_RELEASE_INFO_URL L"\" duration=\"short\">\r\n"
                 L"	<visual>\r\n"
                 L"		<binding template=\"ToastGeneric\">\r\n"
                 L"			<text><![CDATA[No updates are available]]></text>\r\n"
@@ -1177,7 +1173,7 @@ BOOL InstallUpdatesIfAvailable(
                 L"</toast>\r\n";
             const wchar_t text2[] =
                 L"<toast scenario=\"reminder\" "
-                L"activationType=\"protocol\" launch=\"" _T(UPDATES_RELEASE_INFO_URL) L"\" duration=\"short\">\r\n"
+                L"activationType=\"protocol\" launch=\"" UPDATES_RELEASE_INFO_URL L"\" duration=\"short\">\r\n"
                 L"	<visual>\r\n"
                 L"		<binding template=\"ToastGeneric\">\r\n"
                 L"			<text><![CDATA[Unable to check for updates]]></text>\r\n"
