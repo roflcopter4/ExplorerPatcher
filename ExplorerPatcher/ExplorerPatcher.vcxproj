@@ -298,7 +298,8 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <UseProcessorExtensions>HOST</UseProcessorExtensions>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
-      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion -Wformat /clang:-march=native %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion -Wformat -Werror=format  -Wno-incompatible-function-pointer-types -Wno-int-conversion -Wno-incompatible-pointer-types -Werror=sizeof-pointer-div %(AdditionalOptions)</AdditionalOptions>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -416,7 +417,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions512</EnableEnhancedInstructionSet>
-      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion -Wformat /clang:-march=native %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion -Wformat -Werror=format  -Wno-incompatible-function-pointer-types -Wno-int-conversion %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -553,14 +554,14 @@
     <ClCompile Include="cxx\ConsoleWindow.cpp" />
     <ClCompile Include="cxx\CreateHash.cpp" />
     <ClCompile Include="cxx\util.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelDebug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelRelease|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelDebug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelRelease|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelDebug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelRelease|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelDebug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelRelease|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="dllmain.c" />
     <ClCompile Include="fmemopen.c" />
@@ -572,6 +573,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="HideExplorerSearchBar.c" />
+    <ClCompile Include="hookRoutines01.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelDebug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelRelease|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelDebug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelRelease|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="ImmersiveFlyouts.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelDebug|Win32'">true</ExcludedFromBuild>

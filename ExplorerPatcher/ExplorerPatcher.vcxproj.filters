@@ -37,6 +37,9 @@
     <Filter Include="Source Files\internal\cxx">
       <UniqueIdentifier>{fc343ce0-ef04-4a5c-9293-1d0a88a2d2ea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\hooks">
+      <UniqueIdentifier>{976955ca-0c9d-4bbc-bbe9-8e3675107aa5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -246,6 +249,9 @@
     </ClCompile>
     <ClCompile Include="cxx\CreateHash.cpp">
       <Filter>Source Files\internal\cxx</Filter>
+    </ClCompile>
+    <ClCompile Include="hookRoutines01.c">
+      <Filter>Source Files\hooks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
