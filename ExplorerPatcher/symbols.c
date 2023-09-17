@@ -84,17 +84,17 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
     DWORD32 ubr     = VnGetOSVersionAndUBR(&rovi);
 
     Sleep(6000);
-    printf("[Symbols] Started \"Download symbols\" thread.\n");
+    wprintf(L"[Symbols] Started \"Download symbols\" thread.\n");
 
     WCHAR szReportedVersion[MAX_PATH] = {0};
     swprintf_s(
-        szReportedVersion, ARRAYSIZE(szReportedVersion),
-        L"%d.%d.%d.%d",
+        szReportedVersion, _countof(szReportedVersion),
+        L"%ld.%ld.%ld.%ld",
         rovi.dwMajorVersion, rovi.dwMinorVersion, rovi.dwBuildNumber, ubr);
 
     WCHAR buffer[1000];
     memset(buffer, 0, 1000);
-    swprintf_s(buffer, ARRAYSIZE(buffer), DownloadSymbolsXML, szReportedVersion);
+    swprintf_s(buffer, _countof(buffer), DownloadSymbolsXML, szReportedVersion);
 
     if (params->bVerbose)
     {
@@ -151,7 +151,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
         MAX_PATH,
         "\\"
     );
-    printf("[Symbols] Downloading to \"%s\".\n", szSettingsPath);
+    wprintf(L"[Symbols] Downloading to \"%hs\".\n", szSettingsPath);
 
     symbols_addr symbols_PTRS = {0};
     char twinui_pcshell_sb_dll[MAX_PATH] = {0};
@@ -174,7 +174,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
     GetSystemDirectoryW(wszPath, MAX_PATH);
     wcscat_s(wszPath, MAX_PATH, L"\\" _T(TWINUI_PCSHELL_SB_NAME) L".dll");
     ExplorerPatcher_ComputeFileHash(wszPath, hash, 100);
-    printf("[Symbols] Downloading symbols for \"%s\" (\"%s\")...\n", twinui_pcshell_sb_dll, hash);
+    wprintf(L"[Symbols] Downloading symbols for \"%hs\" (\"%hs\")...\n", twinui_pcshell_sb_dll, hash);
 
     if (VnDownloadSymbols(
         NULL,
@@ -183,8 +183,9 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
         MAX_PATH
     ))
     {
-        printf("[Symbols] Symbols for \"%s\" are not available - unable to download.\n", twinui_pcshell_sb_dll);
-        printf("[Symbols] Please refer to \"https://github.com/valinet/ExplorerPatcher/wiki/Symbols\" for more information.\n");
+        wprintf(L"[Symbols] Symbols for \"%hs\" are not available - unable to download.\n"
+                L"[Symbols] Please refer to \"https://github.com/valinet/ExplorerPatcher/wiki/Symbols\" for more information.\n",
+                twinui_pcshell_sb_dll);
         if (params->bVerbose)
         {
             FreeLibraryAndExitThread(
@@ -194,7 +195,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
         }
         return 4;
     }
-    printf("[Symbols] Reading symbols...\n");
+    wprintf(L"[Symbols] Reading symbols...\n");
     if (!IsWindows11())
     {
         DWORD flOldProtect = 0;
@@ -223,7 +224,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
     {
         if (IsWindows11())
         {
-            //printf("[Symbols] Hooking Win+C is not available in this build.\n");
+            //wprintf(L"[Symbols] Hooking Win+C is not available in this build.\n");
             DWORD dwZero = 0;
             RegSetValueExW(
                 hKey,
@@ -240,7 +241,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
                 TWINUI_PCSHELL_SB_CNT - 1
             ))
             {
-                printf("[Symbols] Windows 10 window switcher style is not available in this build.\n");
+                wprintf(L"[Symbols] Windows 10 window switcher style is not available in this build.\n");
                 DWORD dwZero = 0;
                 RegSetValueExW(
                     hKey,
@@ -257,7 +258,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
                     TWINUI_PCSHELL_SB_CNT - 2
                 ))
                 {
-                    printf("[Symbols] Failure in reading symbols for \"%s\".\n", twinui_pcshell_sb_dll);
+                    wprintf(L"[Symbols] Failure in reading symbols for \"%hs\".\n", twinui_pcshell_sb_dll);
                     if (params->bVerbose)
                     {
                         FreeLibraryAndExitThread(
@@ -271,7 +272,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
         }
         else
         {
-            printf("[Symbols] Failure in reading symbols for \"%s\".\n", twinui_pcshell_sb_dll);
+            wprintf(L"[Symbols] Failure in reading symbols for \"%hs\".\n", twinui_pcshell_sb_dll);
             if (params->bVerbose)
             {
                 FreeLibraryAndExitThread(
@@ -309,21 +310,21 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
         strcat_s(startdocked_sb_dll, MAX_PATH, STARTDOCKED_SB_NAME);
         strcat_s(startdocked_sb_dll, MAX_PATH, ".dll");
         GetWindowsDirectoryW(wszPath, MAX_PATH);
-        wcscat_s(wszPath, ARRAYSIZE(wszPath), L"\\SystemApps\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\" _T(STARTDOCKED_SB_NAME) L".dll");
+        wcscat_s(wszPath, _countof(wszPath), L"\\SystemApps\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\" _T(STARTDOCKED_SB_NAME) L".dll");
         ExplorerPatcher_ComputeFileHash(wszPath, hash, 100);
-        printf("[Symbols] Downloading symbols for \"%s\" (\"%ls\")...\n", startdocked_sb_dll, hash);
+        wprintf(L"[Symbols] Downloading symbols for \"%hs\" (\"%hs\")...\n", startdocked_sb_dll, hash);
 
         if (VnDownloadSymbols(NULL, startdocked_sb_dll, szSettingsPath, MAX_PATH)) {
-            printf("[Symbols] Symbols for \"%s\" are not available - unable to download.\n"
-                   "[Symbols] Please refer to \"https://github.com/valinet/ExplorerPatcher/wiki/Symbols\" for more information.\n",
-                   startdocked_sb_dll);
+            wprintf(L"[Symbols] Symbols for \"%hs\" are not available - unable to download.\n"
+                    L"[Symbols] Please refer to \"https://github.com/valinet/ExplorerPatcher/wiki/Symbols\" for more information.\n",
+                    startdocked_sb_dll);
             if (params->bVerbose)
                 FreeLibraryAndExitThread(hModule, 6);
             return 6;
         }
-        printf("[Symbols] Reading symbols...\n");
+        wprintf(L"[Symbols] Reading symbols...\n");
         if (VnGetSymbols(szSettingsPath, symbols_PTRS.startdocked_PTRS, startdocked_SN, STARTDOCKED_SB_CNT)) {
-            printf("[Symbols] Failure in reading symbols for \"%s\".\n", startdocked_sb_dll);
+            wprintf(L"[Symbols] Failure in reading symbols for \"%hs\".\n", startdocked_sb_dll);
             if (params->bVerbose)
                 FreeLibraryAndExitThread(hModule, 7);
             return 7;
@@ -359,7 +360,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
         GetWindowsDirectoryW(wszPath, MAX_PATH);
         wcscat_s(wszPath, MAX_PATH, L"\\SystemApps\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\" _T(STARTUI_SB_NAME) L".dll");
         ExplorerPatcher_ComputeFileHash(wszPath, hash, 100);
-        printf("[Symbols] Downloading symbols for \"%s\" (\"%ls\")...\n", startui_sb_dll, hash);
+        wprintf(L"[Symbols] Downloading symbols for \"%hs\" (\"%hs\")...\n", startui_sb_dll, hash);
 
         if (VnDownloadSymbols(
             NULL,
@@ -368,8 +369,9 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
             MAX_PATH
         ))
         {
-            printf("[Symbols] Symbols for \"%s\" are not available - unable to download.\n", startui_sb_dll);
-            printf("[Symbols] Please refer to \"https://github.com/valinet/ExplorerPatcher/wiki/Symbols\" for more information.\n");
+            wprintf(L"[Symbols] Symbols for \"%hs\" are not available - unable to download.\n"
+                    L"[Symbols] Please refer to \"https://github.com/valinet/ExplorerPatcher/wiki/Symbols\" for more information.\n",
+                    startui_sb_dll);
             if (params->bVerbose)
             {
                 FreeLibraryAndExitThread(
@@ -379,7 +381,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
             }
             return 6;
         }
-        printf("[Symbols] Reading symbols...\n");
+        wprintf(L"[Symbols] Reading symbols...\n");
         if (VnGetSymbols(
             szSettingsPath,
             symbols_PTRS.startui_PTRS,
@@ -387,7 +389,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
             STARTUI_SB_CNT
         ))
         {
-            printf("[Symbols] Failure in reading symbols for \"%s\".\n", startui_sb_dll);
+            wprintf(L"[Symbols] Failure in reading symbols for \"%hs\".\n", startui_sb_dll);
             if (params->bVerbose)
             {
                 FreeLibraryAndExitThread(
@@ -469,7 +471,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
     if (hKey) RegCloseKey(hKey);
 
 
-    printf("[Symbols] Finished gathering symbol data.\n");
+    wprintf(L"[Symbols] Finished gathering symbol data.\n");
 
     if (params->bVerbose)
     {
@@ -499,7 +501,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
     }
     else
     {
-        swprintf_s(buffer, ARRAYSIZE(buffer), DownloadOKXML, szReportedVersion);
+        swprintf_s(buffer, _countof(buffer), DownloadOKXML, szReportedVersion);
         __x_ABI_CWindows_CData_CXml_CDom_CIXmlDocument *inputXml2 = NULL;
         HRESULT hr = String2IXMLDocument(
             buffer,
@@ -523,7 +525,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
         );
     }
 
-    printf("[Symbols] Finished \"Download symbols\" thread.\n");
+    wprintf(L"[Symbols] Finished \"Download symbols\" thread.\n");
     return 0;
 }
 
@@ -539,8 +541,8 @@ BOOL LoadSymbols(symbols_addr* symbols_PTRS, HMODULE hModule)
     WCHAR szReportedVersion[MAX_PATH];
 
     swprintf_s(
-        szReportedVersion, ARRAYSIZE(szReportedVersion),
-        L"%d.%d.%d.%d",
+        szReportedVersion, _countof(szReportedVersion),
+        L"%ld.%ld.%ld.%ld",
         rovi.dwMajorVersion, rovi.dwMinorVersion,
         rovi.dwBuildNumber, ubr
     );
@@ -550,10 +552,10 @@ BOOL LoadSymbols(symbols_addr* symbols_PTRS, HMODULE hModule)
     WCHAR wszPath[MAX_PATH];
     CHAR  hash[128] = {0};
 
-    GetSystemDirectoryW(wszPath, ARRAYSIZE(wszPath));
-    wcscat_s(wszPath, ARRAYSIZE(wszPath), L"\\" TWINUI_PCSHELL_SB_NAME L".dll");
+    GetSystemDirectoryW(wszPath, _countof(wszPath));
+    wcscat_s(wszPath, _countof(wszPath), L"\\" TWINUI_PCSHELL_SB_NAME L".dll");
 
-    ExplorerPatcher_ComputeFileHash(wszPath, hash, ARRAYSIZE(hash));
+    ExplorerPatcher_ComputeFileHash(wszPath, hash, _countof(hash));
     string_to_lowercase(hash);
 
     if (StrEq(hash, "8b23b02962856e89b8d8a3956de1d76c")) // 282, 318
@@ -669,11 +671,11 @@ BOOL LoadSymbols(symbols_addr* symbols_PTRS, HMODULE hModule)
     }
 
     if (bIsTwinuiPcshellHardcoded)
-        printf("[Symbols] Identified known \"" TWINUI_PCSHELL_SB_NAME ".dll\" with hash %s.\n", hash);
+        wprintf(L"[Symbols] Identified known \"" TWINUI_PCSHELL_SB_NAME ".dll\" with hash %s.\n", hash);
 
     GetWindowsDirectoryW(wszPath, MAX_PATH);
     wcscat_s(wszPath, MAX_PATH, L"\\SystemApps\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\" STARTDOCKED_SB_NAME L".dll");
-    ExplorerPatcher_ComputeFileHash(wszPath, hash, ARRAYSIZE(hash));
+    ExplorerPatcher_ComputeFileHash(wszPath, hash, _countof(hash));
     string_to_lowercase(hash);
 
     if (StrEq(hash, "b57bb94a48d2422de9a78c5fcba28f98")) // 282, 318
@@ -739,7 +741,7 @@ BOOL LoadSymbols(symbols_addr* symbols_PTRS, HMODULE hModule)
     bIsStartHardcoded = FALSE;
     GetWindowsDirectoryW(wszPath, MAX_PATH);
     wcscat_s(wszPath, MAX_PATH, L"\\SystemApps\\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\\" STARTUI_SB_NAME L".dll");
-    ExplorerPatcher_ComputeFileHash(wszPath, hash, ARRAYSIZE(hash));
+    ExplorerPatcher_ComputeFileHash(wszPath, hash, _countof(hash));
     string_to_lowercase(hash);
 
     if (StrEq(hash, "2768cc6cc7f686b2aa084cb5c8cce65d") ||
@@ -754,7 +756,7 @@ BOOL LoadSymbols(symbols_addr* symbols_PTRS, HMODULE hModule)
         bIsStartHardcoded             = TRUE;
     }
     if (bIsStartHardcoded) {
-        printf("[Symbols] Identified known \"" STARTUI_SB_NAME ".dll\" with hash %s.\n", hash);
+        wprintf(L"[Symbols] Identified known \"" STARTUI_SB_NAME ".dll\" with hash %hs.\n", hash);
 
         RegCreateKeyExW(HKEY_CURRENT_USER, REGPATH_STARTMENU L"\\" STARTUI_SB_NAME,
                         0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, &dwDisposition);
