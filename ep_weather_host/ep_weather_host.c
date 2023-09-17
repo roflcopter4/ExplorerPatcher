@@ -824,7 +824,7 @@ ULONG STDMETHODCALLTYPE epw_Weather_Release(EPWeather* _this)
         if (!dwOutstandingObjects && !dwOutstandingLocks)
         {
         }
-        printf("[General] Outstanding objects: %d, outstanding locks: %d\n", dwOutstandingObjects, dwOutstandingLocks);
+        printf("[General] Outstanding objects: %ld, outstanding locks: %ld\n", dwOutstandingObjects, dwOutstandingLocks);
 
 #if defined(DEBUG) | defined(_DEBUG)
         printf("\nDumping memory leaks:\n");
@@ -903,7 +903,7 @@ LRESULT CALLBACK epw_Weather_WindowProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPA
     if (uMsg == WM_TIMER && wParam == EP_WEATHER_TIMER_REQUEST_REPAINT)
     {
         HWND hNotifyWnd = InterlockedAdd64(&_this->hNotifyWnd, 0);
-        printf("[Timer Repaint] Request posted to window %x.\n", hNotifyWnd);
+        printf("[Timer Repaint] Request posted to window %p.\n", hNotifyWnd);
         if (hNotifyWnd)
         {
             InvalidateRect(hNotifyWnd, NULL, TRUE);
