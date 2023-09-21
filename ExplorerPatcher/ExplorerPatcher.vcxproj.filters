@@ -40,6 +40,12 @@
     <Filter Include="Source Files\hooks">
       <UniqueIdentifier>{976955ca-0c9d-4bbc-bbe9-8e3675107aa5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\offload">
+      <UniqueIdentifier>{1bceeb1e-2414-4cc6-a8c6-463eb8272d8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\cxx">
+      <UniqueIdentifier>{beb33661-f19d-4172-ba6d-98ecc504d687}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -147,8 +153,14 @@
     <ClInclude Include="..\common\Common.h">
       <Filter>Header Files\internal\utils</Filter>
     </ClInclude>
-    <ClInclude Include="cxx\util.h">
+    <ClInclude Include="..\Common\util.h">
       <Filter>Header Files\internal\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="cxx\offload.h">
+      <Filter>Header Files\cxx</Filter>
+    </ClInclude>
+    <ClInclude Include="dllmain.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -252,6 +264,9 @@
     </ClCompile>
     <ClCompile Include="hookRoutines01.c">
       <Filter>Source Files\hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="cxx\offload1.cpp">
+      <Filter>Source Files\offload</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

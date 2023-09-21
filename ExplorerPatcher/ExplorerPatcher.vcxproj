@@ -553,6 +553,7 @@
     </ClCompile>
     <ClCompile Include="cxx\ConsoleWindow.cpp" />
     <ClCompile Include="cxx\CreateHash.cpp" />
+    <ClCompile Include="cxx\offload1.cpp" />
     <ClCompile Include="cxx\util.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='IntelDebug|Win32'">false</ExcludedFromBuild>
@@ -649,6 +650,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\Common.h" />
+    <ClInclude Include="..\Common\util.h" />
     <ClInclude Include="..\libs\sws\SimpleWindowSwitcher\sws_def.h" />
     <ClInclude Include="..\libs\sws\SimpleWindowSwitcher\sws_error.h" />
     <ClInclude Include="..\libs\sws\SimpleWindowSwitcher\sws_IconPainter.h" />
@@ -663,8 +665,9 @@
     <ClInclude Include="..\libs\sws\SimpleWindowSwitcher\sws_WindowSwitcherLayoutWindow.h" />
     <ClInclude Include="..\version.h" />
     <ClInclude Include="ArchiveMenu.h" />
-    <ClInclude Include="cxx\util.h" />
+    <ClInclude Include="cxx\offload.h" />
     <ClInclude Include="def.h" />
+    <ClInclude Include="dllmain.h" />
     <ClInclude Include="dxgi_imp.h" />
     <ClInclude Include="fmemopen.h" />
     <ClInclude Include="getline.h" />

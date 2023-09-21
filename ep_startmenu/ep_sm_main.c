@@ -7,15 +7,15 @@ HMODULE hModule = NULL;
 HMODULE hOrig = NULL;
 wchar_t* (*pGetCmdArguments)(int*) = NULL;
 SRWLOCK lockInstanced = { .Ptr = SRWLOCK_INIT };
-BOOL bInstanced = FALSE;
+static BOOL bInstanced = FALSE;
 
-BOOL start_GetProductInfo(DWORD dwOSMajorVersion, DWORD dwOSMinorVersion, DWORD dwSpMajorVersion, DWORD dwSpMinorVersion, PDWORD pdwReturnedProductType)
+static BOOL start_GetProductInfo(DWORD dwOSMajorVersion, DWORD dwOSMinorVersion, DWORD dwSpMajorVersion, DWORD dwSpMinorVersion, PDWORD pdwReturnedProductType)
 {
     *pdwReturnedProductType = 119;
     return TRUE;
 }
 
-void Init(void)
+static void Init(void)
 {
     DWORD dwStartShowClassicMode = 0, dwSize = sizeof(DWORD);
     RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced", L"Start_ShowClassicMode", RRF_RT_DWORD, NULL, &dwStartShowClassicMode, &dwSize);

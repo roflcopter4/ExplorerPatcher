@@ -17,125 +17,151 @@ extern _ACRTIMP errno_t __cdecl rand_s(_Out_ unsigned int* _RandomValue);
 
 
 #pragma region "Weird stuff"
-struct IActivationFactoryAA
-{
-    CONST_VTBL IActivationFactoryVtbl *lpVtbl;
+struct IActivationFactoryAA {
+    CONST_VTBL IActivationFactoryVtbl *lpVtbl1;
     CONST_VTBL IActivationFactoryVtbl *lpVtbl2;
     CONST_VTBL IActivationFactoryVtbl *lpVtbl3;
 };
 
-static INT64 STDMETHODCALLTYPE nimpl4_1(INT64 a1, DWORD *a2)
-{
-    *a2 = 1;
-    return 0;
-}
-
-static INT64 STDMETHODCALLTYPE nimpl4_0(INT64 a1, DWORD *a2)
-{
-    *a2 = 0;
-    return 0;
-}
-
-static INT64 STDMETHODCALLTYPE nimpl2(INT64 a1, uintptr_t *a2)
-{
-    // rax
-    INT64 v2 = a1 + 8;
-    if (!a1)
-        v2 = 0i64;
-    *a2 = v2;
-    return 0i64;
-}
-
-static ULONG STDMETHODCALLTYPE nimpl3(void)
-{
-    return 1;
-}
-
-static HRESULT STDMETHODCALLTYPE nimpl(void)
-{
-    return E_NOTIMPL;
-}
-
-static HRESULT STDMETHODCALLTYPE nimpl1(INT64 a1, uintptr_t *a2, uintptr_t *a3)
-{
-    INT64 v4 = a1; // rcx
-
-    if (*a2 != 0x5FADCA5C34A95314ull || a2[1] != 0xC1661118901A7CAEull)
-        return E_NOTIMPL;
-
-    *a3 = v4;
-    return S_OK;
-}
-
-static HRESULT STDMETHODCALLTYPE nimpl1_2(INT64 a1, uintptr_t *a2, uintptr_t *a3)
-{
-    INT64 v4 = a1 - sizeof(INT64); // rcx
-
-    if (*a2 != 0x5FADCA5C34A95314ull || a2[1] != 0xC1661118901A7CAEull)
-        return E_NOTIMPL;
-
-    *a3 = v4;
-    return S_OK;
-}
-
-static HRESULT STDMETHODCALLTYPE nimpl1_3(INT64 a1, uintptr_t *a2, uintptr_t *a3)
-{
-    INT64 v4 = a1 - 2 * sizeof(INT64); // rcx
-
-    if (*a2 != 0x5FADCA5C34A95314ull || a2[1] != 0xC1661118901A7CAEull)
-        return E_NOTIMPL;
-
-    *a3 = v4;
-    return S_OK;
-}
-
-static INT64 STDMETHODCALLTYPE nimpl4(INT64 a1, INT64 a2, INT64 a3, BYTE *a4)
-{
-    *a4 = 0;
-    return 0i64;
-}
-
 typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_QueryInterface_t)     (IActivationFactory *, IID const *, void **);
-typedef ULONG   (STDMETHODCALLTYPE *IAtblCB_Base_t)             (IActivationFactory *);
+typedef ULONG   (STDMETHODCALLTYPE *IAtblCB_Base_t)               (IActivationFactory *);
 typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_GetIids_t)            (IActivationFactory *, ULONG *, IID **);
 typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_GetRuntimeClassName_t)(IActivationFactory *, HSTRING *);
 typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_GetTrustLevel_t)      (IActivationFactory *, TrustLevel *);
 typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_ActivateInstance_t)   (IActivationFactory *, IInspectable **);
 
+/*--------------------------------------------------------------------------------------*/
+
+DEFINE_GUID(uuid_xamlActivationFactory,
+            0x34A95314, 0xCA5C, 0x5FAD,
+            0xAE, 0x7C, 0x1A, 0x90, 0x18, 0x11, 0x66, 0xC1);
+
+static HRESULT STDMETHODCALLTYPE
+vtable_impl_AddRef(IActivationFactory *_this)
+{
+    return 1;
+}
+
+static HRESULT STDMETHODCALLTYPE
+vtable_impl_Release(IActivationFactory *_this)
+{
+    return 1;
+}
+
+static HRESULT STDMETHODCALLTYPE
+impl_IActivationFactory_GetIids(IActivationFactory *_this, ULONG *a2, IID **a3)
+{
+    return E_NOTIMPL;
+}
+
+static HRESULT STDMETHODCALLTYPE
+impl_IActivationFactory_GetRuntimeClassName(IActivationFactory *_this, HSTRING *hString)
+{
+    return E_NOTIMPL;
+}
+
+static HRESULT STDMETHODCALLTYPE
+impl_IActivationFactory_GetTrustLevel(IActivationFactory *_this, TrustLevel *trust)
+{
+    return E_NOTIMPL;
+}
+
+static HRESULT STDMETHODCALLTYPE
+vtable_impl_QueryInterface_1(IActivationFactory *_this, IID const *a2, void **a3)
+{
+    void *v4 = _this; // rcx
+
+    if (!IsEqualIID(a2, &uuid_xamlActivationFactory))
+        return E_NOTIMPL;
+
+    *a3 = v4;
+    return S_OK;
+}
+
+static HRESULT STDMETHODCALLTYPE
+vtable_impl_QueryInterface_2(IActivationFactory *_this, IID const *a2, void **a3)
+{
+    void *v4 = (void *)((uintptr_t)_this - sizeof(uintptr_t)); // rcx
+
+    if (!IsEqualIID(a2, &uuid_xamlActivationFactory))
+        return E_NOTIMPL;
+
+    *a3 = v4;
+    return S_OK;
+}
+
+static HRESULT STDMETHODCALLTYPE
+vtable_impl_QueryInterface_3(IActivationFactory *_this, IID const *a2, void **a3)
+{
+    void *v4 = (void *)((uintptr_t)_this - 2 * sizeof(uintptr_t)); // rcx
+
+    if (!IsEqualIID(a2, &uuid_xamlActivationFactory))
+        return E_NOTIMPL;
+
+    *a3 = v4;
+    return S_OK;
+}
+
+static HRESULT STDMETHODCALLTYPE
+vtable_impl_ActivateInstance_1(IActivationFactory *_this, IInspectable **a2)
+{
+    // rax
+    void *v2 = (void *)((uintptr_t)_this + 8);
+    if (!_this)
+        v2 = NULL;;
+    *a2 = v2;
+    return 0i64;
+}
+
+static HRESULT STDMETHODCALLTYPE
+vtable_impl_ActivateInstance_2(IActivationFactory *_this, IInspectable **a2)
+{
+    return E_NOTIMPL;
+}
+
+static HRESULT STDMETHODCALLTYPE
+vtable_impl_ActivateInstance_3(IActivationFactory *_this, IInspectable **a2, INT64 a3, BYTE *a4)
+{
+    *a4 = 0;
+    return 0;
+}
+
+/*--------------------------------------------------------------------------------------*/
+
 static const IActivationFactoryVtbl IActivationFactoryVtbl1 = {
-    .QueryInterface      = (IAtblCB_QueryInterface_t)     &nimpl1,
-    .AddRef              = (IAtblCB_Base_t)               &nimpl3,
-    .Release             = (IAtblCB_Base_t)               &nimpl3,
-    .GetIids             = (IAtblCB_GetIids_t)            &nimpl,
-    .GetRuntimeClassName = (IAtblCB_GetRuntimeClassName_t)&nimpl,
-    .GetTrustLevel       = (IAtblCB_GetTrustLevel_t)      &nimpl,
-    .ActivateInstance    = (IAtblCB_ActivateInstance_t)   &nimpl2,
+    .QueryInterface      = &vtable_impl_QueryInterface_1,
+    .AddRef              = &vtable_impl_AddRef,
+    .Release             = &vtable_impl_Release,
+    .GetIids             = &impl_IActivationFactory_GetIids,
+    .GetRuntimeClassName = &impl_IActivationFactory_GetRuntimeClassName,
+    .GetTrustLevel       = &impl_IActivationFactory_GetTrustLevel,
+    .ActivateInstance    = &vtable_impl_ActivateInstance_1,
 };
 
 static const IActivationFactoryVtbl IActivationFactoryVtbl2 = {
-    .QueryInterface      = (IAtblCB_QueryInterface_t)     &nimpl1_2,
-    .AddRef              = (IAtblCB_Base_t)               &nimpl3,
-    .Release             = (IAtblCB_Base_t)               &nimpl3,
-    .GetIids             = (IAtblCB_GetIids_t)            &nimpl,
-    .GetRuntimeClassName = (IAtblCB_GetRuntimeClassName_t)&nimpl,
-    .GetTrustLevel       = (IAtblCB_GetTrustLevel_t)      &nimpl,
-    .ActivateInstance    = (IAtblCB_ActivateInstance_t)   &nimpl,
+    .QueryInterface      = &vtable_impl_QueryInterface_2,
+    .AddRef              = &vtable_impl_AddRef,
+    .Release             = &vtable_impl_Release,
+    .GetIids             = &impl_IActivationFactory_GetIids,
+    .GetRuntimeClassName = &impl_IActivationFactory_GetRuntimeClassName,
+    .GetTrustLevel       = &impl_IActivationFactory_GetTrustLevel,
+    .ActivateInstance    = &vtable_impl_ActivateInstance_2,
 };
 
 static const IActivationFactoryVtbl IActivationFactoryVtbl3 = {
-    .QueryInterface      = (IAtblCB_QueryInterface_t)     &nimpl1_3,
-    .AddRef              = (IAtblCB_Base_t)               &nimpl3,
-    .Release             = (IAtblCB_Base_t)               &nimpl3,
-    .GetIids             = (IAtblCB_GetIids_t)            &nimpl,
-    .GetRuntimeClassName = (IAtblCB_GetRuntimeClassName_t)&nimpl,
-    .GetTrustLevel       = (IAtblCB_GetTrustLevel_t)      &nimpl,
-    .ActivateInstance    = (IAtblCB_ActivateInstance_t)   &nimpl4,
+    .QueryInterface      = &vtable_impl_QueryInterface_3,
+    .AddRef              = &vtable_impl_AddRef,
+    .Release             = &vtable_impl_Release,
+    .GetIids             = &impl_IActivationFactory_GetIids,
+    .GetRuntimeClassName = &impl_IActivationFactory_GetRuntimeClassName,
+    .GetTrustLevel       = &impl_IActivationFactory_GetTrustLevel,
+    .ActivateInstance    = (IAtblCB_ActivateInstance_t)&vtable_impl_ActivateInstance_3,
 };
 
 const IActivationFactoryAA XamlExtensionsFactory = {
-    .lpVtbl  = &IActivationFactoryVtbl1,
-    .lpVtbl2 = &IActivationFactoryVtbl2,
-    .lpVtbl3 = &IActivationFactoryVtbl3
+    .lpVtbl1 = (IActivationFactoryVtbl *)&IActivationFactoryVtbl1,
+    .lpVtbl2 = (IActivationFactoryVtbl *)&IActivationFactoryVtbl2,
+    .lpVtbl3 = (IActivationFactoryVtbl *)&IActivationFactoryVtbl3
 };
 #pragma endregion
 
@@ -159,9 +185,9 @@ void printf_guid(GUID guid)
 LRESULT CALLBACK BalloonWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) 
 {
     if (msg == WM_CREATE) {
-        LPCREATESTRUCT lpCs = (void *)lParam;
+        LPCREATESTRUCTW lpCs = (void *)lParam;
 
-        NOTIFYICONDATA ni = {
+        NOTIFYICONDATAW ni = {
             .cbSize      = sizeof(ni),
             .hWnd        = hWnd,
             .uID         = 1,
@@ -172,12 +198,12 @@ LRESULT CALLBACK BalloonWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
         wcscpy_s(ni.szInfo, _countof(ni.szInfo), lpCs->lpCreateParams),
         wcscpy_s(ni.szInfoTitle, _countof(ni.szInfoTitle), L"ExplorerPatcher");
 
-        Shell_NotifyIcon(NIM_ADD, &ni);
+        Shell_NotifyIconW(NIM_ADD, &ni);
         free(lpCs->lpCreateParams);
         exit(0);
     }
 
-    return DefWindowProc(hWnd, msg, wParam, lParam);
+    return DefWindowProcW(hWnd, msg, wParam, lParam);
 }
 
 __declspec(dllexport) int CALLBACK
@@ -192,7 +218,7 @@ ZZTestBalloon(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow)
         exit(1);
 
     MSG        msg;
-    WNDCLASSEX wc = {
+    WNDCLASSEXW wc = {
         .cbSize        = sizeof(WNDCLASSEX),
         .style         = 0,
         .lpfnWndProc   = BalloonWndProc,
@@ -285,7 +311,7 @@ ZZLaunchExplorer(HWND hWnd, HINSTANCE hInstance, PWCHAR lpszCmdLine, int nCmdSho
     wcscat_s(wszExplorerPath, MAX_PATH + 1, L"\\explorer.exe");
 
     PROCESS_INFORMATION pi;
-    STARTUPINFO         si = {.cb = sizeof si};
+    STARTUPINFOW        si = {.cb = sizeof si};
     CreateProcessW(NULL, wszExplorerPath, NULL, NULL, TRUE,
                    CREATE_UNICODE_ENVIRONMENT, NULL, NULL, &si, &pi);
     FreeConsole();
@@ -570,9 +596,8 @@ BOOL SystemShutdown(BOOL reboot)
 
     // Get a token for this process. 
 
-    if (!OpenProcessToken(GetCurrentProcess(),
-        TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
-        return(FALSE);
+    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+        return FALSE;
 
     // Get the LUID for the shutdown privilege. 
 
@@ -583,8 +608,7 @@ BOOL SystemShutdown(BOOL reboot)
 
     // Get the shutdown privilege for this process. 
 
-    AdjustTokenPrivileges(hToken, FALSE, &tkp, 0,
-        (PTOKEN_PRIVILEGES)NULL, 0);
+    AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, NULL, 0);
 
     if (GetLastError() != ERROR_SUCCESS)
         return FALSE;
@@ -605,13 +629,7 @@ HRESULT FindDesktopFolderView(REFIID riid, void** ppv)
 {
     HRESULT hr = E_FAIL;
     IShellWindows* spShellWindows = NULL;
-    hr = CoCreateInstance(
-        &CLSID_ShellWindows,
-        NULL,
-        CLSCTX_ALL,
-        &IID_IShellWindows,
-        &spShellWindows
-    );
+    hr = CoCreateInstance(&CLSID_ShellWindows, NULL, CLSCTX_ALL, &IID_IShellWindows, &spShellWindows);
     if (spShellWindows)
     {
         VARIANT vtEmpty;
@@ -904,12 +922,11 @@ HRESULT getEngineGuid(LPCTSTR extension, GUID* guidBuffer)
 
     // See if this file extension is associated
     // with an ActiveX script engine
-    if (!RegOpenKeyEx(HKEY_CLASSES_ROOT, extension, 0,
-        KEY_QUERY_VALUE | KEY_READ, &hk))
+    if (!RegOpenKeyExW(HKEY_CLASSES_ROOT, extension, 0, KEY_QUERY_VALUE | KEY_READ, &hk))
     {
         type = REG_SZ;
         size = sizeof buffer;
-        size = RegQueryValueEx(hk, 0, 0, &type, (LPBYTE)&buffer[0], &size);
+        size = RegQueryValueExW(hk, 0, 0, &type, (LPBYTE)&buffer[0], &size);
         RegCloseKey(hk);
         if (!size)
         {
@@ -920,34 +937,29 @@ HRESULT getEngineGuid(LPCTSTR extension, GUID* guidBuffer)
             // Open HKEY_CLASSES_ROOT\{LanguageName}
         again:  
             size = sizeof buffer;
-            if (!RegOpenKeyEx(HKEY_CLASSES_ROOT, &buffer[0], 0, KEY_QUERY_VALUE | KEY_READ, &hk))
+            if (!RegOpenKeyExW(HKEY_CLASSES_ROOT, &buffer[0], 0, KEY_QUERY_VALUE | KEY_READ, &hk))
             {
                 // Read the GUID (in string format)
                 // into buffer[] by querying the value of CLSID
-                if (!RegOpenKeyEx(hk, L"CLSID", 0,
-                    KEY_QUERY_VALUE | KEY_READ, &subKey))
+                if (!RegOpenKeyExW(hk, L"CLSID", 0, KEY_QUERY_VALUE | KEY_READ, &subKey))
                 {
                     size = RegQueryValueExW(subKey, 0, 0, &type,
                         (LPBYTE)&buffer[0], &size);
                     RegCloseKey(subKey);
                 }
-                else if (extension)
+                else if (extension && !RegOpenKeyExW(hk, L"ScriptEngine", 0, KEY_QUERY_VALUE | KEY_READ, &subKey))
                 {
                     // If an error, see if we have a "ScriptEngine"
                     // key under here that contains
                     // the real language name
-                    if (!RegOpenKeyEx(hk, L"ScriptEngine", 0,
-                        KEY_QUERY_VALUE | KEY_READ, &subKey))
+                    size = RegQueryValueExW(subKey, 0, 0, &type,
+                                           (LPBYTE)&buffer[0], &size);
+                    RegCloseKey(subKey);
+                    if (!size)
                     {
-                        size = RegQueryValueEx(subKey, 0, 0, &type,
-                            (LPBYTE)&buffer[0], &size);
-                        RegCloseKey(subKey);
-                        if (!size)
-                        {
-                            RegCloseKey(hk);
-                            extension = 0;
-                            goto again;
-                        }
+                        RegCloseKey(hk);
+                        extension = 0;
+                        goto again;
                     }
                 }
             }
@@ -1098,7 +1110,7 @@ static const IActiveScriptSiteWindowVtbl IActiveScriptSiteWindow_Vtbl = {
     .EnableModeless = IActiveScriptSiteWindow_EnableModeless,
 };
 
-typedef struct _CSimpleScriptSite
+typedef struct CSimpleScriptSite
 {
     IActiveScriptSiteVtbl* lpVtbl;
     IActiveScriptSiteWindowVtbl* lpVtbl1;
@@ -1120,8 +1132,8 @@ static LRESULT CALLBACK InputBoxProc(int nCode, WPARAM wParam, LPARAM lParam) {
         }
     }
     if ((nCode = HCBT_CREATEWND)) {
-        if (!(GetWindowLongPtr((HWND)wParam, GWL_STYLE) & WS_CHILD))
-            SetWindowLongPtr((HWND)wParam, GWL_EXSTYLE, GetWindowLongPtr((HWND)wParam, GWL_EXSTYLE) | WS_EX_DLGMODALFRAME);
+        if (!(GetWindowLongPtrW((HWND)wParam, GWL_STYLE) & WS_CHILD))
+            SetWindowLongPtrW((HWND)wParam, GWL_EXSTYLE, GetWindowLongPtrW((HWND)wParam, GWL_EXSTYLE) | WS_EX_DLGMODALFRAME);
     }
     return CallNextHookEx(0, nCode, wParam, lParam);
 }
@@ -1177,7 +1189,7 @@ HRESULT InputBox(BOOL bPassword, HWND hWnd, LPCWSTR wszPrompt, LPCWSTR wszTitle,
                             EXCEPINFO ei;
                             ZeroMemory(&ei, sizeof(EXCEPINFO));
                             DWORD dwThreadId = GetCurrentThreadId();
-                            HINSTANCE hInstance = GetModuleHandle(NULL);
+                            HINSTANCE hInstance = GetModuleHandleW(NULL);
 
                             InputBox_HWND = hWnd ? hWnd : GetAncestor(GetActiveWindow(), GA_ROOTOWNER);
 

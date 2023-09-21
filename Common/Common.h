@@ -3,10 +3,28 @@
 #define PvNJIgfbhLnrWGNwoQrF0Kk9HZDwzqbP
 /****************************************************************************************/
 
+#if defined _DEBUG && !defined DEBUG
+# define DEBUG
+#endif
+#if defined DEBUG && !defined _DEBUG
+# define _DEBUG
+#endif
+#ifdef _DEBUG
+# define _LIBVALINET_DEBUG_HOOKING_IATPATCH
+#endif
+
 #include <Windows.h>
 #include <sal.h>
+#include <io.h>
 
 #ifdef __cplusplus
+# include <algorithm>
+# include <atomic>
+# include <filesystem>
+# include <iostream>
+# include <memory>
+# include <mutex>
+
 # include <cassert>
 # include <cctype>
 # include <cerrno>
@@ -20,12 +38,15 @@
 # include <cstring>
 # include <ctime>
 # include <cwchar>
+# include <cwctype>
 #else
 # include <assert.h>
 # include <ctype.h>
 # include <errno.h>
 # include <inttypes.h>
 # include <limits.h>
+# include <math.h>
+# include <stdarg.h>
 # include <stdbool.h>
 # include <stddef.h>
 # include <stdint.h>
@@ -37,40 +58,27 @@
 # include <wctype.h>
 #endif
 
+#include "Common/util.h"
+
 #ifdef __attribute__
 # undef __attribute__
 #endif
 #if defined __INTELLISENSE__ || defined __RESHARPER__ || \
-    (!defined __GNUC__ && !defined __clang__ && !defined __INTEL_COMPILER && !defined __INTEL_LLVM_COMPILER)
+    (!defined __GNUC__ && !defined __clang__ &&          \
+     !defined __INTEL_COMPILER && !defined __INTEL_LLVM_COMPILER)
 # define __attribute__(x)
 #endif
 
 #ifndef __cplusplus
-# define StrEq(a, b)  (strcmp((a), (b)) == 0)
+# define StrEq(a, b) (strcmp((a), (b)) == 0)
+# define StrIEq(a, b) (_stricmp((a), (b)) == 0)
 # define WStrEq(a, b) (wcscmp((a), (b)) == 0)
-# define StrIEq(a, b)  (_stricmp((a), (b)) == 0)
 # define WStrIEq(a, b) (_wcsicmp((a), (b)) == 0)
 # define lWStrEq(a, b)  (lstrcmpW((a), (b)) == 0)
 # define lWStrIEq(a, b) (lstrcmpiW((a), (b)) == 0)
+# define StrNEq(a, b, n) (strncmp((a), (b), (n)) == 0)
+# define WStrNEq(a, b, n) (wcsncmp((a), (b), (n)) == 0)
 #endif
-
-EXTERN_C_START
-
-size_t ExplorerPatcher_TempString(
-    _Out_writes_z_(bufSize) char *__restrict buf,
-    _In_                    size_t           bufSize);
-
-void ExplorerPatcher_OpenConsoleWindow(void);
-void ExplorerPatcher_CloseConsoleWindow(void);
-
-NTSTATUS ExplorerPatcher_ComputeFileHash(
-    _In_                     LPCWSTR filename,
-    _Out_writes_z_(hashSize) LPSTR   hash,
-    _In_                     SIZE_T  hashSize);
-
-char *ExplorerPatcher_GetWin32ErrorMessage(DWORD error);
-
-EXTERN_C_END
 
 /****************************************************************************************/
 #endif

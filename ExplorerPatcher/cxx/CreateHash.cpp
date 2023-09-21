@@ -3,12 +3,7 @@
  */
 
 #include "Common/Common.h"
-
-#include <Windows.h>
 #include <bcrypt.h>
-#include <cstdlib>
-#include <cwchar>
-#include <filesystem>
 
 
 [[nodiscard]] static INT64
