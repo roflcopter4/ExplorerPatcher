@@ -1,14 +1,7 @@
 #include "Common/Common.h"
-#include <atomic>
-#include <filesystem>
-#include <memory>
-#include <mutex>
-
-using namespace ::std::literals;
 
 namespace ExplorerPatcher {
 /****************************************************************************************/
-
 
 static std::atomic_bool console_opened;
 static std::mutex       console_mutex;
@@ -52,7 +45,6 @@ extern "C" void ExplorerPatcher_CloseConsoleWindow(void)
     if (console_opened.exchange(false, std::memory_order::relaxed))
         ::FreeConsole();
 }
-
 
 /****************************************************************************************/
 } // namespace ExplorerPatcher

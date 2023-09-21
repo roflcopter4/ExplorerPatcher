@@ -188,10 +188,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
                 twinui_pcshell_sb_dll);
         if (params->bVerbose)
         {
-            FreeLibraryAndExitThread(
-                hModule,
-                4
-            );
+            FreeLibraryAndExitThread(hModule, 4);
         }
         return 4;
     }
@@ -226,14 +223,7 @@ DWORD DownloadSymbols(DownloadSymbolsParams* params)
         {
             //wprintf(L"[Symbols] Hooking Win+C is not available in this build.\n");
             DWORD dwZero = 0;
-            RegSetValueExW(
-                hKey,
-                L"" TWINUI_PCSHELL_SB_8,
-                0,
-                REG_DWORD,
-                &dwZero,
-                sizeof(DWORD)
-            );
+            RegSetValueExW(hKey, L"" TWINUI_PCSHELL_SB_8, 0, REG_DWORD, &dwZero, sizeof(DWORD));
             if (VnGetSymbols(
                 szSettingsPath,
                 symbols_PTRS.twinui_pcshell_PTRS,
