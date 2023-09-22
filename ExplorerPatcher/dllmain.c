@@ -561,9 +561,7 @@ static BOOL TerminateShellExperienceHost(void)
     GetWindowsDirectoryW(wszKnownPath, MAX_PATH);
     wcscat_s(wszKnownPath, MAX_PATH, L"\\SystemApps\\ShellExperienceHost_cw5n1h2txyewy\\ShellExperienceHost.exe");
 
-    PROCESSENTRY32W pe32 = {
-        .dwSize = sizeof(PROCESSENTRY32),
-    };
+    PROCESSENTRY32W pe32 = {.dwSize = sizeof pe32};
     HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
     if (Process32FirstW(hSnapshot, &pe32) == TRUE) {
@@ -714,7 +712,7 @@ EP_Service_Window_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 static DWORD EP_ServiceWindowThread(DWORD unused)
 {
-    WNDCLASS wc = {
+    WNDCLASSW wc = {
         .style         = CS_DBLCLKS,
         .lpfnWndProc   = EP_Service_Window_WndProc,
         .hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH),
@@ -1051,7 +1049,7 @@ static DWORD ShowLauncherTipContextMenu(ShowLauncherTipContextMenuParameters *pa
     }
 
     MENUITEMINFOW menuInfo = {
-        .cbSize     = sizeof(MENUITEMINFOW),
+        .cbSize     = sizeof menuInfo,
         .fMask      = MIIM_ID | MIIM_STRING | MIIM_DATA,
         .wID        = 3999,
         .dwItemData = 0,
@@ -1428,7 +1426,7 @@ static LRESULT CALLBACK FixTaskbarAutohide_WndProc(HWND hWnd, UINT uMessage, WPA
 
 static DWORD FixTaskbarAutohide(DWORD unused)
 {
-    WNDCLASS wc = {
+    WNDCLASSW wc = {
         .style         = CS_DBLCLKS,
         .lpfnWndProc   = FixTaskbarAutohide_WndProc,
         .hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH),
@@ -1677,7 +1675,7 @@ static HMENU explorer_LoadMenuW(HINSTANCE hInstance, LPCWSTR lpMenuName)
             }
 
             MENUITEMINFOW menuInfo = {
-                .cbSize     = sizeof(MENUITEMINFOW),
+                .cbSize     = sizeof menuInfo,
                 .fMask      = MIIM_ID | MIIM_STRING | MIIM_DATA,
                 .wID        = 12100,
                 .dwItemData = CheckForUpdatesThread,
@@ -1911,7 +1909,7 @@ static void Shell_handleWin11Menu(HWND hWnd, LPARAM lParam)
     }
 
     MENUITEMINFOW menuInfo = {
-        .cbSize     = sizeof(MENUITEMINFOW),
+        .cbSize     = sizeof menuInfo,
         .fMask      = MIIM_ID | MIIM_STRING | MIIM_DATA | MIIM_STATE,
         .wID        = 3999,
         .dwItemData = 0,
@@ -2178,9 +2176,10 @@ static void RemoveOwnerDrawFromMenu(int level, HMENU hMenu)
     if (hMenu) {
         int k = GetMenuItemCount(hMenu);
         for (int i = 0; i < k; ++i) {
-            MENUITEMINFO mii;
-            mii.cbSize = sizeof(MENUITEMINFO);
-            mii.fMask  = MIIM_FTYPE | MIIM_SUBMENU;
+            MENUITEMINFOW mii = {
+                .cbSize = sizeof mii,
+                .fMask  = MIIM_FTYPE | MIIM_SUBMENU,
+            };
             if (GetMenuItemInfoW(hMenu, i, TRUE, &mii) && (mii.fType & MFT_OWNERDRAW)) {
                 mii.fType &= ~MFT_OWNERDRAW;
                 printf("[ROD]: Level %d Position %d/%d Status %d\n",
@@ -2197,8 +2196,8 @@ static BOOL CheckIfMenuContainsOwnPropertiesItem(HMENU hMenu)
     if (hMenu) {
         int k = GetMenuItemCount(hMenu);
         for (int i = k - 1; i >= 0; i--) {
-            MENUITEMINFO mii = {
-                .cbSize = sizeof(MENUITEMINFO),
+            MENUITEMINFOW mii = {
+                .cbSize = sizeof mii,
                 .fMask  = MIIM_DATA | MIIM_ID,
             };
             BOOL b = GetMenuItemInfoW(hMenu, i, TRUE, &mii);
@@ -6774,11 +6773,12 @@ static BOOL shell32_TrackPopupMenu(
         SpotlightHelper(dwSpotlightDesktopMenuMask, hWnd, hMenu, NULL);
     }
     bSpotlightIsDesktopContextMenu = FALSE;
-    BOOL bRet                      = TrackPopupMenuHook(hMenu, uFlags, x, y, nReserved, hWnd, prcRect);
+    BOOL bRet = TrackPopupMenuHook(hMenu, uFlags, x, y, nReserved, hWnd, prcRect);
     if (IsSpotlightEnabled() && dwSpotlightDesktopMenuMask) {
-        MENUITEMINFOW mii;
-        mii.cbSize = sizeof(MENUITEMINFOW);
-        mii.fMask  = MIIM_FTYPE | MIIM_DATA;
+        MENUITEMINFOW mii = {
+            .cbSize = sizeof mii,
+            .fMask  = MIIM_FTYPE | MIIM_DATA,
+        };
         if (GetMenuItemInfoW(hMenu, bRet, FALSE, &mii) && mii.dwItemData >= SPOP_CLICKMENU_FIRST &&
             mii.dwItemData <= SPOP_CLICKMENU_LAST) {
             SpotlightHelper(mii.dwItemData, hWnd, hMenu, NULL);
@@ -9038,7 +9038,7 @@ static HRESULT InformUserAboutCrashCallback(
                     *(((wchar_t *)lParam) + i) = L'"';
 
             PROCESS_INFORMATION pi;
-            STARTUPINFO si = {.cb = sizeof si};
+            STARTUPINFOW si = {.cb = sizeof si};
 
             if (CreateProcessW(NULL, lParam, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
                 CloseHandle(pi.hProcess);
