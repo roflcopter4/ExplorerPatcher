@@ -34,17 +34,11 @@
     <Filter Include="Header Files\internal\utils">
       <UniqueIdentifier>{bcedff09-aef6-4c84-ab5f-83e385267d46}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\internal\cxx">
-      <UniqueIdentifier>{fc343ce0-ef04-4a5c-9293-1d0a88a2d2ea}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\hooks">
-      <UniqueIdentifier>{976955ca-0c9d-4bbc-bbe9-8e3675107aa5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\offload">
-      <UniqueIdentifier>{1bceeb1e-2414-4cc6-a8c6-463eb8272d8e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\cxx">
       <UniqueIdentifier>{beb33661-f19d-4172-ba6d-98ecc504d687}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\cxx">
+      <UniqueIdentifier>{fc343ce0-ef04-4a5c-9293-1d0a88a2d2ea}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -254,19 +248,16 @@
       <Filter>Source Files\internal</Filter>
     </ClCompile>
     <ClCompile Include="cxx\util.cpp">
-      <Filter>Source Files\internal\cxx</Filter>
+      <Filter>Source Files\cxx</Filter>
     </ClCompile>
     <ClCompile Include="cxx\ConsoleWindow.cpp">
-      <Filter>Source Files\internal\cxx</Filter>
+      <Filter>Source Files\cxx</Filter>
     </ClCompile>
     <ClCompile Include="cxx\CreateHash.cpp">
-      <Filter>Source Files\internal\cxx</Filter>
-    </ClCompile>
-    <ClCompile Include="hookRoutines01.c">
-      <Filter>Source Files\hooks</Filter>
+      <Filter>Source Files\cxx</Filter>
     </ClCompile>
     <ClCompile Include="cxx\offload1.cpp">
-      <Filter>Source Files\offload</Filter>
+      <Filter>Source Files\cxx</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
