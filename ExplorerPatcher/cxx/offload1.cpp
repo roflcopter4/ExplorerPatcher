@@ -4,6 +4,7 @@
 #include <winstring.h>
 #include <roapi.h>
 #include <inspectable.h>
+#include <Windows.ApplicationModel.Contacts.h>
 
 namespace ExplorerPatcher {
 /****************************************************************************************/
@@ -22,18 +23,21 @@ static constexpr GUID uuidof_Windows_UI_Core_ICoreWindow5 = {
 extern "C" void
 ExplorerPatcher_EnsureXAML(void)
 {
-    using get_func = void(__fastcall *)(IInspectable *This, void **data);
+    //using get_func = void(__fastcall *)(IInspectable *This, void **data);
+    using get_func = void(__fastcall *)(void);
 
     static std::atomic_flag flg;
     if (flg.test_and_set())
         return;
 
+    get_func func;
     HStringWrapper      hstringXamlApplication;
     HStringWrapper      hstringWindowsXamlManager;
+    IInspectable       *pXamlApplication          = nullptr;
     IActivationFactory *pUIXamlApplicationFactory = nullptr;
-    IInspectable       *pCoreWindow5              = nullptr;
-    IUnknown           *pXamlApplication          = nullptr;
-    IUnknown           *pDispatcherQueue          = nullptr;
+
+    ABI::Windows::UI::Core::ICoreWindow5   *pCoreWindow5     = nullptr;
+    ABI::Windows::System::IDispatcherQueue *pDispatcherQueue = nullptr;
 
     HRESULT res = hstringXamlApplication.makeRef(L"Windows.Internal.Shell.XamlExplorerHost.XamlApplication");
     if (FAILED(res) || !hstringXamlApplication)
@@ -53,8 +57,9 @@ ExplorerPatcher_EnsureXAML(void)
         goto cleanup;
     }
 
-    get_func func = *reinterpret_cast<get_func *>(*reinterpret_cast<UINT_PTR *>(pUIXamlApplicationFactory) + 48);
-    func(pUIXamlApplicationFactory, reinterpret_cast<void **>(&pXamlApplication)); // get_Current
+    func = *reinterpret_cast<get_func *>(*reinterpret_cast<UINT_PTR *>(pUIXamlApplicationFactory) + 56);
+    pUIXamlApplicationFactory->ActivateInstance(&pXamlApplication); // this is get_Current
+    func();
 
     if (!pXamlApplication) {
         wprintf(L"Error in sub_1800135EC on pUIXamlApplicationFactory + 48.\n");
@@ -74,21 +79,17 @@ ExplorerPatcher_EnsureXAML(void)
         goto cleanup;
     }
 
-    func = *reinterpret_cast<get_func *>(*reinterpret_cast<UINT_PTR *>(pCoreWindow5) + 48);
-    func(pCoreWindow5, reinterpret_cast<void **>(&pDispatcherQueue)); // get_DispatcherQueue
+    pCoreWindow5->get_DispatcherQueue(&pDispatcherQueue);
     if (!pDispatcherQueue) {
         wprintf(L"Error (%lX) in sub_1800135EC on pCoreWindow5 + 48.\n", res);
     }
 
     // Keep pDispatcherQueue referenced in memory
-    //finalTime = GetTickCount64();
-    //wprintf(L"EnsureXAML %llu ms.\n", finalTime - initTime);
-
 cleanup:
-    //if (pXamlApplication)
-    //    pXamlApplication->Release();
-    //if (pCoreWindow5)
-    //    pCoreWindow5->Release();
+    if (pXamlApplication)
+        pXamlApplication->Release();
+    if (pCoreWindow5)
+        pCoreWindow5->Release();
     if (pUIXamlApplicationFactory)
         pUIXamlApplicationFactory->Release();
 }

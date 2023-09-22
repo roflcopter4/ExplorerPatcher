@@ -957,7 +957,7 @@ static void ToggleLauncherTipContextMenu(void)
 #pragma region "windowsudk.shellcommon Hooks"
 
 static HRESULT WINAPI
-windowsudkshellcommon_SLGetWindowsInformationDWORDHook(PCWSTR pwszValueName, DWORD *pdwValue)
+windowsudkshellcommon_SLGetWindowsInformationDWORDHook(LPCWSTR pwszValueName, DWORD *pdwValue)
 {
     HRESULT hr = SLGetWindowsInformationDWORDFunc(pwszValueName, pdwValue);
 
@@ -1531,9 +1531,9 @@ DEFINE_GUID(uuidof_Windows_UI_Core_ICoreWindow5,
 static HRESULT WINAPI ICoreWindow5_get_DispatcherQueueHook(void *_this, void **ppValue)
 {
     static unsigned char flg = 0;
-    if (!_InterlockedExchange8(&flg, 1))
-        SendMessageTimeoutW(FindWindowW(L"Shell_TrayWnd", NULL),
-                            WM_SETTINGCHANGE, 0, L"EnsureXAML", SMTO_NOTIMEOUTIFNOTHUNG, INFINITE, NULL);
+    //if (!_InterlockedExchange8(&flg, 1))
+    SendMessageTimeoutW(FindWindowW(L"Shell_TrayWnd", NULL),
+                        WM_SETTINGCHANGE, 0, L"EnsureXAML", SMTO_NOTIMEOUTIFNOTHUNG, INFINITE, NULL);
     return ICoreWindow5_get_DispatcherQueueFunc(_this, ppValue);
 }
 
@@ -1547,8 +1547,8 @@ static HMODULE __fastcall Windows11v22H2_combase_LoadLibraryExW(LPCWSTR lpLibFil
     HMODULE hModule = LoadLibraryExW(lpLibFileName, hFile, dwFlags);
 
     if (hModule && hModule == GetModuleHandleW(L"Windows.Ui.Xaml.dll")) {
-        if (_InterlockedExchange8(&flg, 1))
-            return hModule;
+        //if (_InterlockedExchange8(&flg, 1))
+        //    return hModule;
 
         HSTRING_HEADER hstringHeaderWindowsXamlManager;
         HSTRING        hstringWindowsXamlManager = NULL;

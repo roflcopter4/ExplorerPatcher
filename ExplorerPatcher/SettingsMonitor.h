@@ -1,25 +1,27 @@
 #pragma once
 #ifndef _H_SETTINGSMONITOR_H_
 #define _H_SETTINGSMONITOR_H_
+
 #include <Windows.h>
 #include <Shlwapi.h>
-#pragma comment(lib, "Shlwapi.lib")
 #include <stdio.h>
+#pragma comment(lib, "Shlwapi.lib")
 
-typedef struct _Setting
-{
-    HKEY origin;
-    wchar_t name[MAX_PATH];
-    HKEY hKey;
+typedef struct Setting {
+    HKEY   origin;
+    HKEY   hKey;
     HANDLE hEvent;
-    void(__stdcall *callback)(void*);
-    void* data;
+    void(__stdcall *callback)(void *);
+    void   *data;
+    wchar_t name[MAX_PATH];
 } Setting;
-typedef struct _SettingsChangeParameters
-{
-    Setting* settings;
-    DWORD size;
-    HANDLE hThread;
+
+typedef struct SettingsChangeParameters {
+    HANDLE   hThread;
+    Setting *settings;
+    DWORD    size;
 } SettingsChangeParameters;
-DWORD WINAPI MonitorSettings(SettingsChangeParameters*);
+
+extern DWORD WINAPI MonitorSettings(SettingsChangeParameters*);
+
 #endif
