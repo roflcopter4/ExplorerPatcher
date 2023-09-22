@@ -42,7 +42,7 @@ FILE* fmemopen(void* buf, size_t len, const char* type)
 		return NULL;
 	}
 
-	fwrite(buf, len, 1, fp);
+	fwrite(buf, 1, len, fp);
 	rewind(fp);
 
 	return fp;
