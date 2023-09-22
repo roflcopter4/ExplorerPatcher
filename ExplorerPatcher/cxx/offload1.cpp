@@ -1,4 +1,5 @@
 #include "Common/Common.h"
+#include "cxx_util.hh"
 
 #include <winstring.h>
 #include <roapi.h>
@@ -18,40 +19,26 @@ static constexpr GUID uuidof_Windows_UI_Core_ICoreWindow5 = {
     {0xB2, 0x10, 0x71, 0x2B, 0x04, 0xA5, 0x88, 0x82}
 };
 
-template <size_t N>
-__forceinline static HRESULT
-makeStringRef(wchar_t const (&sourceString)[N], HSTRING_HEADER &header, HSTRING &string)
+extern "C" void
+ExplorerPatcher_EnsureXAML(void)
 {
-    return ::WindowsCreateStringReference(
-        sourceString, static_cast<UINT32>(std::size(sourceString) - 1), &header, &string);
-}
-
-extern "C" void ExplorerPatcher_EnsureXAML(void)
-{
-    using get_func = void (__fastcall *)(void *, void **);
+    using get_func = void(__fastcall *)(IInspectable *This, void **data);
 
     static std::atomic_flag flg;
     if (flg.test_and_set())
         return;
 
-    ULONGLONG initTime = GetTickCount64();
-    ULONGLONG finalTime;
-    get_func  func;
+    HStringWrapper      hstringXamlApplication;
+    HStringWrapper      hstringWindowsXamlManager;
+    IActivationFactory *pUIXamlApplicationFactory = nullptr;
+    IInspectable       *pCoreWindow5              = nullptr;
+    IUnknown           *pXamlApplication          = nullptr;
+    IUnknown           *pDispatcherQueue          = nullptr;
 
-    HSTRING_HEADER hstringheaderXamlApplication;
-    HSTRING_HEADER hstringheaderWindowsXamlManager;
-    HSTRING        hstringXamlApplication    = nullptr;
-    HSTRING        hstringWindowsXamlManager = nullptr;
-    IInspectable  *pUIXamlApplicationFactory = nullptr;
-    IInspectable  *pCoreWindow5              = nullptr;
-    IUnknown      *pXamlApplication          = nullptr;
-    IUnknown      *pDispatcherQueue          = nullptr;
-
-    HRESULT res = makeStringRef(L"Windows.Internal.Shell.XamlExplorerHost.XamlApplication",
-                                hstringheaderXamlApplication, hstringXamlApplication);
+    HRESULT res = hstringXamlApplication.makeRef(L"Windows.Internal.Shell.XamlExplorerHost.XamlApplication");
     if (FAILED(res) || !hstringXamlApplication)
     {
-        wprintf(L"Error in sub_1800135EC on WindowsCreateStringReference.\n");
+        wprintf(L"Error (%lX) in sub_1800135EC on WindowsCreateStringReference.\n", res);
         return;
     }
 
@@ -60,57 +47,50 @@ extern "C" void ExplorerPatcher_EnsureXAML(void)
                                  reinterpret_cast<void **>(&pUIXamlApplicationFactory));
     if (FAILED(res) || !pUIXamlApplicationFactory) {
         char *errmsg = ExplorerPatcher_GetWin32ErrorMessage(res);
-        wprintf(L"Error in sub_1800135EC on RoGetActivationFactory (0x%08X): \"%hs\".\n",
+        wprintf(L"Error in sub_1800135EC on RoGetActivationFactory (0x%08lX): \"%hs\".\n",
                 res, errmsg);
         free(errmsg);
-        goto cleanup0;
+        goto cleanup;
     }
 
-    func = *reinterpret_cast<get_func *>(*reinterpret_cast<UINT_PTR *>(pUIXamlApplicationFactory) + 48);
+    get_func func = *reinterpret_cast<get_func *>(*reinterpret_cast<UINT_PTR *>(pUIXamlApplicationFactory) + 48);
     func(pUIXamlApplicationFactory, reinterpret_cast<void **>(&pXamlApplication)); // get_Current
 
     if (!pXamlApplication) {
         wprintf(L"Error in sub_1800135EC on pUIXamlApplicationFactory + 48.\n");
-        goto cleanup1;
+        goto cleanup;
     }
-    pXamlApplication->Release();
 
-    res = makeStringRef(L"Windows.UI.Xaml.Hosting.WindowsXamlManager",
-                        hstringheaderWindowsXamlManager, hstringWindowsXamlManager);
+    res = hstringWindowsXamlManager.makeRef(L"Windows.UI.Xaml.Hosting.WindowsXamlManager");
     if (FAILED(res) || !hstringWindowsXamlManager) {
         wprintf(L"Error in sub_1800135EC on WindowsCreateStringReference 2.\n");
-        goto cleanup1;
+        goto cleanup;
     }
 
     res = RoGetActivationFactory(hstringWindowsXamlManager, uuidof_Windows_UI_Core_ICoreWindow5,
                                  reinterpret_cast<void **>(&pCoreWindow5));
     if (FAILED(res) || !pCoreWindow5) {
-        wprintf(L"Error in sub_1800135EC on RoGetActivationFactory 2.\n");
-        goto cleanup2;
+        wprintf(L"Error (%lX) in sub_1800135EC on RoGetActivationFactory 2.\n", res);
+        goto cleanup;
     }
 
     func = *reinterpret_cast<get_func *>(*reinterpret_cast<UINT_PTR *>(pCoreWindow5) + 48);
     func(pCoreWindow5, reinterpret_cast<void **>(&pDispatcherQueue)); // get_DispatcherQueue
     if (!pDispatcherQueue) {
-        wprintf(L"Error in sub_1800135EC on pCoreWindow5 + 48.\n");
-        goto cleanup3;
+        wprintf(L"Error (%lX) in sub_1800135EC on pCoreWindow5 + 48.\n", res);
     }
+
     // Keep pDispatcherQueue referenced in memory
     //finalTime = GetTickCount64();
     //wprintf(L"EnsureXAML %llu ms.\n", finalTime - initTime);
 
-cleanup3:
-    if (pCoreWindow5)
-        pCoreWindow5->Release();
-cleanup2:
-    if (hstringWindowsXamlManager)
-        WindowsDeleteString(hstringWindowsXamlManager);
-cleanup1:
+cleanup:
+    //if (pXamlApplication)
+    //    pXamlApplication->Release();
+    //if (pCoreWindow5)
+    //    pCoreWindow5->Release();
     if (pUIXamlApplicationFactory)
         pUIXamlApplicationFactory->Release();
-cleanup0:
-    if (hstringXamlApplication)
-        WindowsDeleteString(hstringXamlApplication);
 }
 
 

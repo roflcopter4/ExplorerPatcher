@@ -5,6 +5,9 @@
 #include "Common/Common.h"
 #include <bcrypt.h>
 
+namespace ExplorerPatcher {
+/****************************************************************************************/
+
 
 [[nodiscard]] static INT64
 read_all_bytes(HANDLE handle, BYTE *buf, INT64 nbytes)
@@ -23,8 +26,8 @@ read_all_bytes(HANDLE handle, BYTE *buf, INT64 nbytes)
 [[nodiscard]] static BYTE *
 slurp_file(wchar_t const *filename, INT64 *nread_ptr)
 {
-    HANDLE handle = ::CreateFileW(filename, GENERIC_READ, 0, nullptr,
-                                  OPEN_EXISTING, 0, nullptr);
+    HANDLE handle = CreateFileW(filename, GENERIC_READ, 0, nullptr,
+                                OPEN_EXISTING, 0, nullptr);
     if (handle == INVALID_HANDLE_VALUE) {
         DWORD err = GetLastError();
         wprintf(L"Failed to open file \"%ls\": %lX\n", filename, err);
@@ -41,11 +44,11 @@ slurp_file(wchar_t const *filename, INT64 *nread_ptr)
     if (nread_ptr)
         *nread_ptr = nread;
     if (nread < 0 || static_cast<size_t>(nread) != size) {
-        DWORD err = ::GetLastError();
+        DWORD err = GetLastError();
         wprintf(L"Error reading file \"%ls\": Read only %zd bytes of %zd (%lX).\n",
                 filename, nread, size, err);
     }
-    ::CloseHandle(handle);
+    CloseHandle(handle);
     return ptr;
 }
 
@@ -157,3 +160,7 @@ Cleanup:
     return status;
 #undef FAIL
 }
+
+
+/****************************************************************************************/
+} // namespace ExplorerPatcher
