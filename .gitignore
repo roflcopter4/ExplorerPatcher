@@ -354,5 +354,3 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 /ExplorerPatcher/ExplorerPatcher.vcxproj.DotSettings
-/.clang-format
-/thng.txt

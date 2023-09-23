@@ -1,0 +1,116 @@
+BasedOnStyle: LLVM
+
+# ##Allman##
+#BreakBeforeBraces: Allman
+#SpaceBeforeParens: ControlStatements
+#IndentCaseLabels: true
+#IndentWidth: 4
+# ##END##
+
+# ##GNU##
+#BreakBeforeBraces: GNU
+#SpaceBeforeParens: ControlStatements
+#IndentCaseLabels: false
+#IndentWidth: 8
+# ##END##
+
+
+BinPackParameters: false
+BinPackArguments: true
+
+AlignAfterOpenBracket: Align
+#AlignAfterOpenBracket: BlockIndent
+
+AlignArrayOfStructures: Left
+AlignConsecutiveAssignments: true
+AlignConsecutiveBitFields: AcrossEmptyLinesAndComments
+AlignConsecutiveDeclarations: true
+AlignConsecutiveMacros: AcrossComments
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
+
+# AllowShortCaseLabelsOnASingleLine: true
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+# AllowShortFunctionsOnASingleLine: Inline
+# AllowShortFunctionsOnASingleLine: All
+AllowShortLambdasOnASingleLine: All
+
+# AlwaysBreakAfterReturnType: AllDefinitions
+AlwaysBreakAfterReturnType: None
+AlwaysBreakTemplateDeclarations: true
+BreakBeforeBinaryOperators: None
+BreakStringLiterals: true
+
+PenaltyBreakAssignment: 30
+# PenaltyExcessCharacter: 3
+# PenaltyBreakBeforeFirstCallParameter: 500
+
+PPIndentWidth: 1
+IndentPPDirectives: AfterHash
+
+# NamespaceIndentation: Inner
+# IndentWrappedFunctionNames: true
+
+# AccessModifierOffset: 0
+MaxEmptyLinesToKeep: 2
+PointerAlignment: Right
+ReflowComments: true
+SortIncludes: true
+SortUsingDeclarations: true
+SpaceBeforeAssignmentOperators: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+AllowAllConstructorInitializersOnNextLine: true
+BreakConstructorInitializers: BeforeColon
+
+RemoveBracesLLVM: true
+
+FixNamespaceComments: true
+
+ForEachMacros: ['LL_FOREACH_F', 'LL_FOREACH_B', 'B_LIST_FOREACH', 'B_FOREACH', 'P99_PARALLEL_FOR', 'P99_PARALLEL_DO', 'GENLIST_FOREACH', 'foreach']
+
+StatementAttributeLikeMacros: ['UNUSED', 'ND', 'NODISCARD']
+
+# QualifierAlignment: left
+# QualifierAlignment: ['inline', 'static', 'constexpr', 'type', 'const', 'volatile', 'restrict']
+# QualifierOrder: ['inline', 'static', 'constexpr', 'type', 'const', 'volatile', 'restrict']
+
+# ##Linux##
+BreakBeforeBraces: Linux
+SpaceBeforeParens: ControlStatements
+IndentCaseLabels: false
+IndentWidth: 4
+# ##END##
+
+UseTab: Never
+ColumnLimit: 130
+
+# ##Custom##
+#BreakBeforeBraces: Custom
+#IndentWidth: 6
+#LambdaBodyIndentation: OuterScope
+#BraceWrapping:
+#  AfterClass:            true
+#  AfterControlStatement: false
+#  AfterEnum:             false
+#  AfterFunction:         true
+#  AfterNamespace:        false
+#  AfterObjCDeclaration:  false
+#  AfterStruct:           false
+#  AfterUnion:            false
+#  BeforeCatch:           false
+#  BeforeElse:            false
+#  IndentBraces:          false
+#  BeforeLambdaBody:      true
+#  SplitEmptyFunction:    false
+#  SplitEmptyRecord:      false
+#  SplitEmptyNamespace:   false
+##
+# ##END##
+#  AfterExternBlock:      false
+
