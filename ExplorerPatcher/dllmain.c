@@ -67,61 +67,12 @@
 #define POPUPMENU_INPUTSWITCH_TIMEOUT  700
 #define POPUPMENU_WINX_TIMEOUT         700
 #define POPUPMENU_EX_ELAPSED           300
+#define TASKBARGLOMLEVEL_DEFAULT       2
+#define MMTASKBARGLOMLEVEL_DEFAULT     2
+#define MAX_NUM_MONITORS               30
 
 // Only use this for developing fixes for 22621.2134+ using 22621.1413-1992.
-#define USE_MOMENT_3_FIXES_ON_MOMENT_2 0
-
-BOOL bIsExplorerProcess = FALSE;
-BOOL bInstanced = FALSE;
-HWND archivehWnd;
-DWORD bOldTaskbar = TRUE;
-DWORD bWasOldTaskbarSet = FALSE;
-DWORD bAllocConsole = FALSE;
-DWORD bHideExplorerSearchBar = FALSE;
-DWORD bShrinkExplorerAddressBar = FALSE;
-DWORD bMicaEffectOnTitlebar = FALSE;
-DWORD bHideIconAndTitleInExplorer = FALSE;
-DWORD bHideControlCenterButton = FALSE;
-DWORD bFlyoutMenus = TRUE;
-DWORD bCenterMenus = TRUE;
-DWORD bSkinMenus = TRUE;
-DWORD bSkinIcons = TRUE;
-DWORD bReplaceNetwork = FALSE;
-DWORD dwExplorerReadyDelay = 0;
-DWORD bEnableArchivePlugin = FALSE;
-DWORD bMonitorOverride = TRUE;
-DWORD bOpenAtLogon = FALSE;
-DWORD bClockFlyoutOnWinC = FALSE;
-DWORD bUseClassicDriveGrouping = FALSE;
-DWORD dwFileExplorerCommandUI = 9999;
-DWORD bLegacyFileTransferDialog = FALSE;
-DWORD bDisableImmersiveContextMenu = FALSE;
-DWORD bClassicThemeMitigations = FALSE;
-DWORD bWasClassicThemeMitigationsSet = FALSE;
-DWORD bHookStartMenu = TRUE;
-DWORD bPropertiesInWinX = FALSE;
-DWORD bNoMenuAccelerator = FALSE;
-DWORD dwIMEStyle = 0;
-DWORD dwTaskbarAl = 1;
-DWORD bShowUpdateToast = FALSE;
-DWORD bToolbarSeparators = FALSE;
-DWORD bTaskbarAutohideOnDoubleClick = FALSE;
-DWORD dwOrbStyle = 0;
-DWORD bEnableSymbolDownload = TRUE;
-DWORD dwAltTabSettings = 0;
-DWORD bDisableAeroSnapQuadrants = FALSE;
-DWORD dwSnapAssistSettings = 0;
-DWORD dwStartShowClassicMode = 0;
-BOOL bDoNotRedirectSystemToSettingsApp = FALSE;
-BOOL bDoNotRedirectProgramsAndFeaturesToSettingsApp = FALSE;
-BOOL bDoNotRedirectDateAndTimeToSettingsApp = FALSE;
-BOOL bDoNotRedirectNotificationIconsToSettingsApp = FALSE;
-BOOL bDisableOfficeHotkeys = FALSE;
-BOOL bDisableWinFHotkey = FALSE;
-DWORD bNoPropertiesInContextMenu = FALSE;
-#define TASKBARGLOMLEVEL_DEFAULT 2
-#define MMTASKBARGLOMLEVEL_DEFAULT 2
-#define MAX_NUM_MONITORS 30
+/*#undef USE_MOMENT_3_FIXES_ON_MOMENT_2 1*/
 
 #define ORB_STYLE_WINDOWS10   0
 #define ORB_STYLE_WINDOWS11   1
@@ -509,7 +460,7 @@ static HWND GetMonitorInfoFromPointForTaskbarFlyoutActivation(POINT ptCursor, DW
         hWnd = FindWindowExW(NULL, hWnd, L"Shell_SecondaryTrayWnd", NULL);
         if (MonitorFromWindow(hWnd, dwFlags) == hMonitor) {
             if (lpMi)
-                GetMonitorInfo(MonitorFromPoint(ptCursor, dwFlags), lpMi);
+                GetMonitorInfoW(MonitorFromPoint(ptCursor, dwFlags), lpMi);
             break;
         }
     } while (hWnd);
@@ -535,9 +486,7 @@ static POINT GetDefaultWinXPosition(
         *lpBottom = FALSE;
     if (lpRight)
         *lpRight = FALSE;
-    POINT point;
-    point.x = 0;
-    point.y = 0;
+    POINT point = {0, 0};
     POINT ptCursor;
     GetCursorPos(&ptCursor);
     MONITORINFO mi;
@@ -1184,7 +1133,7 @@ static INT64 CLauncherTipContextMenu_ShowLauncherTipContextMenuHook(void *_this,
             .bottom = pt->y + 5,
         };
 
-        // printf("%d %d = %d %d %d %d\n", posCursor.x, posCursor.y, rcHitZone.left, rcHitZone.right,
+        // wprintf(L"%d %d = %d %d %d %d\n", posCursor.x, posCursor.y, rcHitZone.left, rcHitZone.right,
         // rcHitZone.top, rcHitZone.bottom);
 
         if (bBottom && IsThemeActive() && PtInRect(&rcHitZone, posCursor) &&
@@ -1625,13 +1574,13 @@ static int HandleTaskbarCornerInteraction(HWND hWnd, UINT uMsg, WPARAM wParam, L
     int  t   = 2;
     BOOL bOk = FALSE;
     if (pt.x < mi.rcMonitor.left + t && pt.y > mi.rcMonitor.bottom - t) {
-        // printf("bottom left\n");
+        // wprintf(L"bottom left\n");
         bOk = TRUE;
     } else if (pt.x < mi.rcMonitor.left + t && pt.y < mi.rcMonitor.top + t) {
-        // printf("top left\n");
+        // wprintf(L"top left\n");
         bOk = TRUE;
     } else if (pt.x > mi.rcMonitor.right - t && pt.y < mi.rcMonitor.top + t) {
-        // printf("top right\n");
+        // wprintf(L"top right\n");
         bOk = TRUE;
     }
 
@@ -1795,13 +1744,13 @@ static BOOL IsPointOnEmptyAreaOfNewTaskbar(POINT pt)
                         rc.left -= (rc.right - rc.left);
                         bFirst = FALSE;
                     }
-                    // printf("PT %d %d RECT %d %d %d %d\n", pt.x, pt.y, rc.left, rc.top, rc.right, rc.bottom);
+                    // wprintf(L"PT %d %d RECT %d %d %d %d\n", pt.x, pt.y, rc.left, rc.top, rc.right, rc.bottom);
                     if (pNextTaskbarButton && PtInRect(&rc, pt))
                         bValid = FALSE;
                     pTaskbarButton->lpVtbl->Release(pTaskbarButton);
                     pTaskbarButton = pNextTaskbarButton;
                 }
-                // printf("IS VALID %d\n\n", bValid);
+                // wprintf(L"IS VALID %d\n\n", bValid);
                 if (pControlWalker)
                     pControlWalker->lpVtbl->Release(pControlWalker);
                 if (bValid) {
@@ -2153,7 +2102,8 @@ static DWORD ShouldShowLegacyClockExperience(void)
 {
     DWORD dwVal = 0, dwSize = sizeof(DWORD);
     if (SHRegGetValueFromHKCUHKLMFunc &&
-        SHRegGetValueFromHKCUHKLMFunc(L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ImmersiveShell", L"UseWin32TrayClockExperience",
+        SHRegGetValueFromHKCUHKLMFunc(L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ImmersiveShell",
+                                      L"UseWin32TrayClockExperience",
                                       SRRF_RT_REG_DWORD, NULL, &dwVal, (LPDWORD)(&dwSize)) == ERROR_SUCCESS)
         return dwVal;
     return 0;
@@ -2233,8 +2183,8 @@ static void RemoveOwnerDrawFromMenu(int level, HMENU hMenu)
             };
             if (GetMenuItemInfoW(hMenu, i, TRUE, &mii) && (mii.fType & MFT_OWNERDRAW)) {
                 mii.fType &= ~MFT_OWNERDRAW;
-                printf("[ROD]: Level %d Position %d/%d Status %d\n",
-                       level, i, k, SetMenuItemInfoW(hMenu, i, TRUE, &mii));
+                wprintf(L"[ROD]: Level %d Position %d/%d Status %d\n",
+                        level, i, k, SetMenuItemInfoW(hMenu, i, TRUE, &mii));
                 RemoveOwnerDrawFromMenu(level + 1, mii.hSubMenu);
             }
         }
@@ -2275,14 +2225,12 @@ static BOOL TrackPopupMenuHookEx(HMENU hMenu, UINT uFlags, int x, int y, HWND hW
     BOOL bContainsOwn = FALSE;
     if (bIsExplorerProcess && (WStrEq(wszClassName, L"Shell_TrayWnd") ||
                                WStrEq(wszClassName, L"Shell_SecondaryTrayWnd")))
-    {
         bContainsOwn = CheckIfMenuContainsOwnPropertiesItem(hMenu);
-    }
 
     bool isExplorerProcess = bIsExplorerProcess
-                             ? 1
-                             : (WStrEq(wszClassName, L"SHELLDLL_DefView") ||
-                                WStrEq(wszClassName, L"SysTreeView32"));
+                                 ? 1
+                                 : (WStrEq(wszClassName, L"SHELLDLL_DefView") ||
+                                    WStrEq(wszClassName, L"SysTreeView32"));
 
     if (bIsTaskbar && isExplorerProcess) {
         EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
@@ -2362,9 +2310,7 @@ static BOOL TrackPopupMenuHook(
             if (bIsExplorerProcess) {
 #else
             if (bIsExplorerProcess && ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
-                POINT pt;
-                pt.x = x;
-                pt.y = y;
+                POINT pt = {x, y};
                 ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc(hMenu, hWnd, &(pt));
 #endif
             } else {
@@ -2509,7 +2455,7 @@ static BOOL explorer_TrackPopupMenuExHook(
             if (bIsImmersiveMenu) {
                 if (ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
                     POINT pt = {x, y};
-                    ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc(hMenu, hWnd, &(pt));
+                    ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc(hMenu, hWnd, &pt);
                 } else {
                     RemoveOwnerDrawFromMenu(0, hMenu);
                 }
@@ -2551,7 +2497,7 @@ static BOOL pnidui_TrackPopupMenuHook(
             if (bIsImmersiveMenu) {
                 if (ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
                     POINT pt = {x, y};
-                    ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc(hMenu, hWnd, &(pt));
+                    ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc(hMenu, hWnd, &pt);
                 } else {
                     RemoveOwnerDrawFromMenu(0, hMenu);
                 }
@@ -2590,10 +2536,8 @@ static BOOL sndvolsso_TrackPopupMenuExHook(
             EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
             if (bIsImmersiveMenu) {
                 if (ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
-                    POINT pt;
-                    pt.x = x;
-                    pt.y = y;
-                    ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc(hMenu, hWnd, &(pt));
+                    POINT pt = {x, y};
+                    ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc(hMenu, hWnd, &pt);
                 } else {
                     RemoveOwnerDrawFromMenu(0, hMenu);
                 }
@@ -2606,15 +2550,15 @@ static BOOL sndvolsso_TrackPopupMenuExHook(
         ZeroMemory(&menuInfo, sizeof(MENUITEMINFOW));
         menuInfo.cbSize = sizeof(MENUITEMINFOW);
         menuInfo.fMask = MIIM_ID | MIIM_STRING;
-        printf("GetMenuItemInfoW %d\n", GetMenuItemInfoW(hMenu, GetMenuItemCount(hMenu) - 1, TRUE, &menuInfo));
+        wprintf(L"GetMenuItemInfoW %d\n", GetMenuItemInfoW(hMenu, GetMenuItemCount(hMenu) - 1, TRUE, &menuInfo));
         menuInfo.dwTypeData = malloc(menuInfo.cch + sizeof(wchar_t));
         menuInfo.cch++;
-        printf("GetMenuItemInfoW %d\n", GetMenuItemInfoW(hMenu, GetMenuItemCount(hMenu) - 1, TRUE, &menuInfo));
+        wprintf(L"GetMenuItemInfoW %d\n", GetMenuItemInfoW(hMenu, GetMenuItemCount(hMenu) - 1, TRUE, &menuInfo));
         wcscpy_s(menuInfo.dwTypeData, menuInfo.cch, L"test");
         menuInfo.fMask = MIIM_STRING;
         wprintf(L"SetMenuItemInfoW %s %d\n", menuInfo.dwTypeData, SetMenuItemInfoW(hMenu, GetMenuItemCount(hMenu) - 1, TRUE, &menuInfo));
         wcscpy_s(menuInfo.dwTypeData, menuInfo.cch, L"");
-        printf("GetMenuItemInfoW %d\n", GetMenuItemInfoW(hMenu, GetMenuItemCount(hMenu) - 1, TRUE, &menuInfo));
+        wprintf(L"GetMenuItemInfoW %d\n", GetMenuItemInfoW(hMenu, GetMenuItemCount(hMenu) - 1, TRUE, &menuInfo));
         wprintf(L"%s\n", menuInfo.dwTypeData);
         free(menuInfo.dwTypeData);
 #endif
@@ -2635,7 +2579,7 @@ static void PatchSndvolsso(void)
     if (bSkinIcons)
         VnPatchIAT(hSndvolsso, "user32.dll", "LoadImageW", SystemTray_LoadImageWHook);
 # endif
-    printf("Setup sndvolsso functions done\n");
+    wprintf(L"Setup sndvolsso functions done\n");
 }
 
 static BOOL stobject_TrackPopupMenuExHook(
@@ -2660,7 +2604,7 @@ static BOOL stobject_TrackPopupMenuExHook(
         if (bSkinMenus) {
             unknown_array = calloc(4, sizeof(INT64));
             if (ImmersiveContextMenuHelper_ApplyOwnerDrawToMenuFunc)
-                ImmersiveContextMenuHelper_ApplyOwnerDrawToMenuFunc(hMenu, hWnd, &(pt), 0xC, unknown_array);
+                ImmersiveContextMenuHelper_ApplyOwnerDrawToMenuFunc(hMenu, hWnd, &pt, 0xC, unknown_array);
             SetWindowSubclass(hWnd, OwnerDrawSubclassProc, OwnerDrawSubclassProc, 0);
         }
         b = TrackPopupMenuEx(hMenu, uFlags | TPM_RIGHTBUTTON, x, y, hWnd, lptpm);
@@ -2812,9 +2756,7 @@ static BOOL twinui_TrackPopupMenuHook(
             EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
             if (bIsImmersiveMenu) {
                 if (ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
-                    POINT pt;
-                    pt.x = x;
-                    pt.y = y;
+                    POINT pt = {x, y};
                     ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc(hMenu, hWnd, &(pt));
                 } else {
                     RemoveOwnerDrawFromMenu(0, hMenu);
@@ -2840,7 +2782,7 @@ static BOOL WINAPI DisableImmersiveMenus_SystemParametersInfoW(
 )
 {
     if (bDisableImmersiveContextMenu && uiAction == SPI_GETSCREENREADER) {
-        printf("SystemParametersInfoW\n");
+        wprintf(L"SystemParametersInfoW\n");
         *(BOOL *)pvParam = TRUE;
         return TRUE;
     }
@@ -3119,7 +3061,8 @@ static HRESULT pnidui_CoCreateInstanceHook(
                 hCheckForegroundThread = NULL;
             }
             HKEY hKey = NULL;
-            if (RegCreateKeyExW(HKEY_CURRENT_USER, L"" SEH_REGPATH, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_READ, NULL, &hKey, NULL) == ERROR_SUCCESS)
+            if (RegCreateKeyExW(HKEY_CURRENT_USER, L"" SEH_REGPATH, 0, NULL, REG_OPTION_NON_VOLATILE,
+                                KEY_READ, NULL, &hKey, NULL) == ERROR_SUCCESS)
                 RegCloseKey(hKey);
             TerminateShellExperienceHost();
             InvokeFlyout(0, INVOKE_FLYOUT_NETWORK);
@@ -3170,9 +3113,7 @@ static BOOL InvokeClockFlyout(void)
                         FindWindowExW(hShellTray_Wnd, NULL, L"TrayNotifyWnd", NULL), NULL, L"TrayClockWClass", NULL
                     ));
                 } else {
-                    POINT pt;
-                    pt.x = 0;
-                    pt.y = 0;
+                    POINT pt = {0, 0};
                     GetCursorPos(&pt);
                     BOOL  bBottom, bRight;
                     POINT dPt = GetDefaultWinXPosition(FALSE, NULL, NULL, FALSE, TRUE);
@@ -3209,9 +3150,7 @@ static BOOL InvokeClockFlyout(void)
                     if (bOldTaskbar) {
                         return ShowLegacyClockExperience(hWnd);
                     } else {
-                        POINT pt;
-                        pt.x = 0;
-                        pt.y = 0;
+                        POINT pt = {0, 0};
                         GetCursorPos(&pt);
                         BOOL  bBottom, bRight;
                         POINT dPt = GetDefaultWinXPosition(FALSE, NULL, NULL, FALSE, TRUE);
@@ -3419,9 +3358,7 @@ static void RecomputeWeatherFlyoutLocation(HWND hWnd)
 {
     RECT rcButton;
     GetWindowRect(PeopleButton_LastHWND, &rcButton);
-    POINT pButton;
-    pButton.x = rcButton.left;
-    pButton.y = rcButton.top;
+    POINT pButton = {rcButton.left, rcButton.top};
 
     RECT rcWeatherFlyoutWindow;
     GetWindowRect(hWnd, &rcWeatherFlyoutWindow);
@@ -3504,7 +3441,7 @@ static SIZE WINAPI PeopleButton_CalculateMinimumSizeHook(void *_this, SIZE *pSz)
             else
                 pSz->cx = prev_total_h;
         }
-        // printf("[CalculateMinimumSize] %d %d\n", pSz->cx, pSz->cy);
+        // wprintf(L"[CalculateMinimumSize] %d %d\n", pSz->cx, pSz->cy);
         if (pSz->cy) {
             BOOL    bIsInitialized = TRUE;
             HRESULT hr = epw->lpVtbl->IsInitialized(epw, &bIsInitialized);
@@ -3603,7 +3540,7 @@ static int PeopleBand_MulDivHook(int nNumber, int nNumerator, int nDenominator)
 {
     if (nNumber != 46) // 46 = vertical taskbar, 48 = horizontal taskbar
     {
-        // printf("[MulDivHook] %d %d %d\n", nNumber, nNumerator, nDenominator);
+        // wprintf(L"[MulDivHook] %d %d %d\n", nNumber, nNumerator, nDenominator);
         BOOL bHasLocked = TryEnterCriticalSection(&lock_epw);
         if (bHasLocked && epw) {
             if (bWeatherFixedSize == 1) {
@@ -4025,7 +3962,7 @@ PeopleBand_DrawTextWithGlowHook(
             if (!bUseCachedData && bShouldUnlockData)
                 epw->lpVtbl->UnlockData(epw);
         } else {
-            // printf("444444444444 0x%x\n", hr);
+            // wprintf(L"444444444444 0x%x\n", hr);
             if (hr == 0x800706BAu) // RPC server is unavailable
             {
 #if 0
@@ -4044,7 +3981,7 @@ PeopleBand_DrawTextWithGlowHook(
             }
         }
 
-        // printf("hr %x\n", hr);
+        // wprintf(L"hr %x\n", hr);
 
         LeaveCriticalSection(&lock_epw);
         return S_OK;
@@ -4118,7 +4055,7 @@ static __int64 PeopleButton_OnClickHook(__int64 a1, __int64 a2)
                     SwitchToThisWindow(hWndWeatherFlyout, TRUE);
                 } else {
                     epw->lpVtbl->Hide(epw);
-                    // printf("HR %x\n", PostMessageW(hWnd, EP_WEATHER_WM_FETCH_DATA, 0, 0));
+                    // wprintf(L"HR %x\n", PostMessageW(hWnd, EP_WEATHER_WM_FETCH_DATA, 0, 0));
                 }
             } else {
                 RecomputeWeatherFlyoutLocation(hWndWeatherFlyout);
@@ -4317,7 +4254,7 @@ static INT64 ShowDesktopSubclassProc(
 #ifdef _WIN64
 static DWORD SignalShellReady(DWORD wait)
 {
-    printf("Started \"Signal shell ready\" thread.\n");
+    wprintf(L"Started \"Signal shell ready\" thread.\n");
     // UpdateStartMenuPositioning(MAKELPARAM(TRUE, TRUE));
 
     while (!wait && TRUE) {
@@ -4444,7 +4381,7 @@ static DWORD WindowSwitcher(DWORD unused)
     while (TRUE) {
         // Sleep(5000);
         while (!FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL)) {
-            printf("[sws] Waiting for taskbar...\n");
+            wprintf(L"[sws] Waiting for taskbar...\n");
             Sleep(100);
         }
         Sleep(100);
@@ -5258,7 +5195,7 @@ static HRESULT explorer_DrawThemeBackground(
 
                 if (dwOrbStyle == ORB_STYLE_WINDOWS11) {
                     UINT separator = oi->dpi / 96;
-                    // printf(">>> SEPARATOR %p %d %d\n", oi->hTheme, oi->dpi, separator);
+                    // wprintf(L">>> SEPARATOR %p %d %d\n", oi->hTheme, oi->dpi, separator);
 
                     // Background
                     StretchDIBits(hdc, pRect->left + (separator % 2),
@@ -5332,7 +5269,7 @@ static HRESULT explorer_CloseThemeData(HTHEME hTheme)
         for (unsigned i = 0; i < DPA_GetPtrCount(hOrbCollection); ++i) {
             OrbInfo *oi = DPA_FastGetPtr(hOrbCollection, i);
             if (oi->hTheme == hTheme) {
-                // printf(">>> DELETE DPA %p %d\n", oi->hTheme, oi->dpi);
+                // wprintf(L">>> DELETE DPA %p %d\n", oi->hTheme, oi->dpi);
                 DPA_DeletePtr(hOrbCollection, i);
                 free(oi);
                 break;
@@ -5354,7 +5291,7 @@ static HTHEME explorer_OpenThemeDataForDpi(HWND hwnd, LPCWSTR pszClassList, UINT
             if (oi) {
                 oi->hTheme = hTheme;
                 oi->dpi    = dpi;
-                // printf(">>> APPEND DPA %p %d\n", oi->hTheme, oi->dpi);
+                // wprintf(L">>> APPEND DPA %p %d\n", oi->hTheme, oi->dpi);
                 DPA_AppendPtr(hOrbCollection, oi);
             }
         }
@@ -5428,16 +5365,9 @@ static HRESULT explorer_GetThemeMargins(
 #if 0
     if (hTheme == 0xB16B00B5)
     {
-        printf(
-            "GetThemeMargins %d %d %d - %d %d %d %d\n",
-            iPartId,
-            iStateId,
-            iPropId,
-            pMargins->cxLeftWidth,
-            pMargins->cyTopHeight,
-            pMargins->cxRightWidth,
-            pMargins->cyBottomHeight
-        );
+        wprintf(L"GetThemeMargins %d %d %d - %d %d %d %d\n",
+                iPartId, iStateId, iPropId, pMargins->cxLeftWidth,
+                pMargins->cyTopHeight, pMargins->cxRightWidth, pMargins->cyBottomHeight);
     }
 #endif
     if (hTheme == 0xDEADBEEF && iPropId == TMT_CONTENTMARGINS && iPartId == 5 && iStateId == 1) {
@@ -6105,14 +6035,12 @@ static HRESULT CInputSwitchControl_ShowInputSwitchHook(IInputSwitchControl *_thi
     double  dpix = dpiX / 96.0;
     double  dpiy = dpiY / 96.0;
 
-    // printf("RECT %d %d %d %d - %d %d\n", lpRect->left, lpRect->right, lpRect->top, lpRect->bottom,
+    // wprintf(L"RECT %d %d %d %d - %d %d\n", lpRect->left, lpRect->right, lpRect->top, lpRect->bottom,
     // dwNumberOfProfiles, a3);
 
     RECT rc;
     GetWindowRect(hWndTaskbar, &rc);
-    POINT pt;
-    pt.x       = rc.left;
-    pt.y       = rc.top;
+    POINT pt = {rc.left, rc.top};
     UINT tbPos = GetTaskbarLocationAndSize(pt, &rc);
     if (tbPos == TB_POS_BOTTOM) {
     } else if (tbPos == TB_POS_TOP) {
@@ -6361,7 +6289,7 @@ static LSTATUS explorer_RegGetValueW(
         if (lRes != ERROR_SUCCESS) {
             *(DWORD *)pvData  = (lpValue[0] == L'T' ? TASKBARGLOMLEVEL_DEFAULT : MMTASKBARGLOMLEVEL_DEFAULT);
             *(DWORD *)pcbData = sizeof(DWORD32);
-            lRes              = ERROR_SUCCESS;
+            lRes = ERROR_SUCCESS;
         }
     }
 #if 0
@@ -6395,7 +6323,7 @@ static LSTATUS twinuipcshell_RegGetValueW(
 {
     LSTATUS lRes = RegGetValueW(hkey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
 
-    if (lpValue && lpValue && lWStrEq(lpValue, L"AltTabSettings")) {
+    if (lpValue && lWStrEq(lpValue, L"AltTabSettings")) {
         if (lRes == ERROR_SUCCESS && *(DWORD *)pvData)
             *(DWORD *)pvData = *(DWORD *)pvData == 3 ? 0 : 1;
 
@@ -6546,25 +6474,13 @@ static BOOL explorer_SetRect(LPRECT lprc, int xLeft, int yTop, int xRight, int y
 #pragma region "Disable Office Hotkeys"
 static BOOL explorer_RegisterHotkeyHook(HWND hWnd, int id, UINT fsModifiers, UINT vk)
 {
-    if (bDisableOfficeHotkeys && fsModifiers == (MOD_ALT | MOD_CONTROL | MOD_SHIFT | MOD_WIN | MOD_NOREPEAT) && (
-        vk == office_hotkeys[0] ||
-        vk == office_hotkeys[1] ||
-        vk == office_hotkeys[2] ||
-        vk == office_hotkeys[3] ||
-        vk == office_hotkeys[4] ||
-        vk == office_hotkeys[5] ||
-        vk == office_hotkeys[6] ||
-        vk == office_hotkeys[7] ||
-        vk == office_hotkeys[8] ||
-        vk == office_hotkeys[9] ||
-        !vk))
     static const UINT office_hotkeys[10] = {0x57, 0x54, 0x59, 0x4F, 0x50, 0x44, 0x4C, 0x58, 0x4E, 0x20};
 
-    if (fsModifiers == (MOD_ALT | MOD_CONTROL | MOD_SHIFT | MOD_WIN | MOD_NOREPEAT) &&
+    if (bDisableOfficeHotkeys && fsModifiers == (MOD_ALT | MOD_CONTROL | MOD_SHIFT | MOD_WIN | MOD_NOREPEAT) &&
         (vk == office_hotkeys[0] || vk == office_hotkeys[1] || vk == office_hotkeys[2] ||
          vk == office_hotkeys[3] || vk == office_hotkeys[4] || vk == office_hotkeys[5] ||
          vk == office_hotkeys[6] || vk == office_hotkeys[7] || vk == office_hotkeys[8] ||
-         vk == office_hotkeys[9] || !vk))
+         vk == office_hotkeys[9] || vk == 0))
     {
         SetLastError(ERROR_HOTKEY_ALREADY_REGISTERED);
         return FALSE;
@@ -6575,18 +6491,17 @@ static BOOL explorer_RegisterHotkeyHook(HWND hWnd, int id, UINT fsModifiers, UIN
     static BOOL bWinBHotkeyRegistered = FALSE;
     if (!bWinBHotkeyRegistered && fsModifiers == (MOD_WIN | MOD_NOREPEAT) && vk == 'D') // right after Win+D
     {
-#if USE_MOMENT_3_FIXES_ON_MOMENT_2
+#ifdef USE_MOMENT_3_FIXES_ON_MOMENT_2
         BOOL bPerformMoment2Patches = IsWindows11Version22H2Build1413OrHigher();
 #else
         BOOL bPerformMoment2Patches = IsWindows11Version22H2Build2134OrHigher();
 #endif
-        if (bPerformMoment2Patches && global_rovi.dwBuildNumber == 22621 && bOldTaskbar)
-        {
+        if (bPerformMoment2Patches && global_rovi.dwBuildNumber == 22621 && bOldTaskbar) {
             // Might be better if we scan the GlobalKeylist array to prevent hardcoded numbers?
             RegisterHotKey(hWnd, 500, MOD_WIN | MOD_NOREPEAT, 'A');
             RegisterHotKey(hWnd, 514, MOD_WIN | MOD_NOREPEAT, 'B');
             RegisterHotKey(hWnd, 591, MOD_WIN | MOD_NOREPEAT, 'N');
-            printf("Registered Win+A, Win+B, and Win+N\n");
+            wprintf(L"Registered Win+A, Win+B, and Win+N\n");
         }
         bWinBHotkeyRegistered = TRUE;
     }
@@ -6594,10 +6509,9 @@ static BOOL explorer_RegisterHotkeyHook(HWND hWnd, int id, UINT fsModifiers, UIN
     return result;
 }
 
-BOOL twinui_RegisterHotkeyHook(HWND hWnd, int id, UINT fsModifiers, UINT vk)
+static BOOL twinui_RegisterHotkeyHook(HWND hWnd, int id, UINT fsModifiers, UINT vk)
 {
-    if (fsModifiers == (MOD_WIN | MOD_NOREPEAT) && vk == 'F')
-    {
+    if (fsModifiers == (MOD_WIN | MOD_NOREPEAT) && vk == 'F') {
         SetLastError(ERROR_HOTKEY_ALREADY_REGISTERED);
         return FALSE;
     }
@@ -7016,8 +6930,8 @@ static int RtlQueryFeatureConfigurationHook(
 )
 {
     int rv = RtlQueryFeatureConfigurationFunc(featureId, sectionType, changeStamp, buffer);
-#if !USE_MOMENT_3_FIXES_ON_MOMENT_2
-    if (IsWindows11Version22H2Build1413OrHigher() && bOldTaskbar && featureId == 26008830) {
+#ifndef USE_MOMENT_3_FIXES_ON_MOMENT_2
+    if (bOldTaskbar && featureId == 26008830 && IsWindows11Version22H2Build1413OrHigher()) {
         // Disable tablet optimized taskbar feature when using the Windows 10 taskbar
         //
         // For now, this fixes Task View and Win-Tab, Alt-Tab breaking after pressing Win-Tab,
@@ -7217,15 +7131,14 @@ static INT64 twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostHook(
     return twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostFunc(a1, a2, a3, a4, a5);
 }
 
-#if _WIN64
-static struct
-{
+#ifdef _WIN64
+static struct {
     int coroInstance_rcOut; // 22621.1992: 0x10
     int coroInstance_pHardwareConfirmatorHost; // 22621.1992: 0xFD
     int hardwareConfirmatorHost_bIsInLockScreen; // 22621.1992: 0xEC
 } g_Moment2PatchOffsets;
 
-BOOL Moment2PatchActionCenter(LPMODULEINFO mi)
+static BOOL Moment2PatchActionCenter(LPMODULEINFO mi)
 {
     /***
     Step 1:
@@ -7256,13 +7169,15 @@ BOOL Moment2PatchActionCenter(LPMODULEINFO mi)
     74 -> EB
     ***/
 
-    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x0F\x10\x45\x00\xF3\x0F\x7F\x07\x80\xBE", "xxx?xxxxxx");
+    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
+                              "\x0F\x10\x45\x00\xF3\x0F\x7F\x07\x80\xBE", "xxx?xxxxxx");
     if (!step1) return FALSE;
-    printf("[CActionCenterExperienceManager::GetViewPosition()] step1 = %lX\n", step1 - (PBYTE)mi->lpBaseOfDll);
+    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] step1 = %p\n",
+            (void *)(step1 - (PBYTE)mi->lpBaseOfDll));
 
     if (!IsWindows11Version22H2Build2134OrHigher()) // We're on 1413-1992
     {
-#if USE_MOMENT_3_FIXES_ON_MOMENT_2
+# ifdef USE_MOMENT_3_FIXES_ON_MOMENT_2
         PBYTE featureCheckJz = step1 + 35;
         if (*featureCheckJz != 0x0F && *(featureCheckJz + 1) != 0x84) return FALSE;
 
@@ -7273,21 +7188,24 @@ BOOL Moment2PatchActionCenter(LPMODULEINFO mi)
         *(DWORD*)(featureCheckJz + 1) = (DWORD)(jzAddr - featureCheckJz - 5);
         VirtualProtect(featureCheckJz, 5, dwOldProtect, &dwOldProtect);
         goto done;
-#else
+# else
         return FALSE;
-#endif
+# endif
     }
 
     PBYTE step2 = FindPattern(step1 + 1, 200, "\x0F\x10\x45\x00\xF3\x0F\x7F\x07\x48", "xxx?xxxxx");
     if (!step2) return FALSE;
-    printf("[CActionCenterExperienceManager::GetViewPosition()] step2 = %lX\n", step2 - (PBYTE)mi->lpBaseOfDll);
+    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] step2 = %p\n",
+            (void *)(step2 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step3 = FindPattern(step1 + 1, 32, "\x48\x8D", "xx");
     if (!step3) return FALSE;
-    printf("[CActionCenterExperienceManager::GetViewPosition()] step3 = %lX\n", step3 - (PBYTE)mi->lpBaseOfDll);
+    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] step3 = %p\n",
+            (void *)(step3 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step4 = step2 + 11;
-    printf("[CActionCenterExperienceManager::GetViewPosition()] step4 = %lX\n", step4 - (PBYTE)mi->lpBaseOfDll);
+    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] step4 = %p\n",
+            (void *)(step4 - (PBYTE)mi->lpBaseOfDll));
     if (*step4 != 0x74) return FALSE;
 
     // Execution
@@ -7303,11 +7221,11 @@ BOOL Moment2PatchActionCenter(LPMODULEINFO mi)
     VirtualProtect(step4, 1, dwOldProtect, &dwOldProtect);
 
 done:
-    printf("[CActionCenterExperienceManager::GetViewPosition()] Patched!\n");
+    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] Patched!\n");
     return TRUE;
 }
 
-BOOL Moment2PatchControlCenter(LPMODULEINFO mi)
+static BOOL Moment2PatchControlCenter(LPMODULEINFO mi)
 {
     /***
     Step 1:
@@ -7337,21 +7255,31 @@ BOOL Moment2PatchControlCenter(LPMODULEINFO mi)
     74 -> EB
     ***/
 
-    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x0F\x10\x44\x24\x00\xF3\x0F\x7F\x44\x24\x00\x80\xBF", "xxxx?xxxxx?xx");
-    if (!step1) return FALSE;
-    printf("[CControlCenterExperienceManager::PositionView()] step1 = %lX\n", step1 - (PBYTE)mi->lpBaseOfDll);
+    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x0F\x10\x44\x24\x00\xF3\x0F\x7F\x44\x24\x00\x80\xBF",
+                              "xxxx?xxxxx?xx");
+    if (!step1)
+        return FALSE;
+    wprintf(L"[CControlCenterExperienceManager::PositionView()] step1 = %p\n",
+            (void *)(step1 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step2 = FindPattern(step1 + 1, 256, "\x0F\x10\x45\x00\xF3\x0F\x7F\x44\x24\x00\x48", "xxx?xxxxx?x");
-    if (!step2) return FALSE;
-    printf("[CControlCenterExperienceManager::PositionView()] step2 = %lX\n", step2 - (PBYTE)mi->lpBaseOfDll);
+    if (!step2)
+        return FALSE;
+    wprintf(L"[CControlCenterExperienceManager::PositionView()] step2 = %p\n",
+            (void *)(step2 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step3 = FindPattern(step1 + 1, 32, "\x48\x8D", "xx");
-    if (!step3) return FALSE;
-    printf("[CControlCenterExperienceManager::PositionView()] step3 = %lX\n", step3 - (PBYTE)mi->lpBaseOfDll);
+    if (!step3)
+        return FALSE;
+    wprintf(L"[CControlCenterExperienceManager::PositionView()] step3 = %p\n",
+            (void *)(step3 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step4 = step2 + 13;
-    printf("[CControlCenterExperienceManager::PositionView()] step4 = %lX\n", step4 - (PBYTE)mi->lpBaseOfDll);
-    if (*step4 != 0x74) return FALSE;
+    wprintf(L"[CControlCenterExperienceManager::PositionView()] step4 = %p\n",
+            (void *)(step4 - (PBYTE)mi->lpBaseOfDll));
+
+    if (*step4 != 0x74)
+        return FALSE;
 
     // Execution
     DWORD dwOldProtect = 0;
@@ -7365,11 +7293,11 @@ BOOL Moment2PatchControlCenter(LPMODULEINFO mi)
     step4[0] = 0xEB;
     VirtualProtect(step4, 1, dwOldProtect, &dwOldProtect);
 
-    printf("[CControlCenterExperienceManager::PositionView()] Patched!\n");
+    wprintf(L"[CControlCenterExperienceManager::PositionView()] Patched!\n");
     return TRUE;
 }
 
-BOOL Moment2PatchToastCenter(LPMODULEINFO mi)
+static BOOL Moment2PatchToastCenter(LPMODULEINFO mi)
 {
     /***
     Step 1:
@@ -7402,48 +7330,57 @@ BOOL Moment2PatchToastCenter(LPMODULEINFO mi)
 
     PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x0F\x10\x45\x84\x00\x0F\x7F\x44\x24\x00\x48\x8B\xCF", "xxxx?xxxx?xxx");
     if (!step1) return FALSE;
-    printf("[CToastCenterExperienceManager::PositionView()] step1 = %lX\n", step1 - (PBYTE)mi->lpBaseOfDll);
+    wprintf(L"[CToastCenterExperienceManager::PositionView()] step1 = %p\n",
+            (void *)(step1 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step2 = FindPattern(step1 + 1, 200, "\x0F\x10\x45\x00\xF3\x0F\x7F\x44\x24\x00\x48", "xxx?xxxxx?x");
     if (!step2) return FALSE;
-    printf("[CToastCenterExperienceManager::PositionView()] step2 = %lX\n", step2 - (PBYTE)mi->lpBaseOfDll);
+    wprintf(L"[CToastCenterExperienceManager::PositionView()] step2 = %p\n",
+            (void *)(step2 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step3 = FindPattern(step1 + 1, 32, "\x48\x8D", "xx");
     if (!step3) return FALSE;
-    printf("[CToastCenterExperienceManager::PositionView()] step3 = %lX\n", step3 - (PBYTE)mi->lpBaseOfDll);
+    wprintf(L"[CToastCenterExperienceManager::PositionView()] step3 = %p\n",
+            (void *)(step3 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step4 = step2 + 13;
-    printf("[CToastCenterExperienceManager::PositionView()] step4 = %lX\n", step4 - (PBYTE)mi->lpBaseOfDll);
-    if (*step4 != 0x0F /*When the else block is big*/ && *step4 != 0x74) return FALSE;
+    wprintf(L"[CToastCenterExperienceManager::PositionView()] step4 = %p\n",
+            (void *)(step4 - (PBYTE)mi->lpBaseOfDll));
+
+    if (*step4 != 0x0F /*When the else block is big*/ && *step4 != 0x74)
+        return FALSE;
 
     // Execution
     DWORD dwOldProtect = 0;
-    if (!VirtualProtect(step3, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
+    if (!VirtualProtect(step3, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect))
+        return FALSE;
+
     step3[0] = 0xE9;
-    *(DWORD*)(step3 + 1) = (DWORD)(step2 - step3 - 5);
+    *(DWORD *)(step3 + 1) = (DWORD)(step2 - step3 - 5);
     VirtualProtect(step3, 5, dwOldProtect, &dwOldProtect);
 
     dwOldProtect = 0;
     if (*step4 == 0x74) // Same size, just change the opcode
     {
-        if (!VirtualProtect(step4, 1, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
+        if (!VirtualProtect(step4, 1, PAGE_EXECUTE_READWRITE, &dwOldProtect))
+            return FALSE;
         step4[0] = 0xEB;
         VirtualProtect(step4, 1, dwOldProtect, &dwOldProtect);
-    }
-    else // The big one
+    } else // The big one
     {
-        PBYTE jzAddr = step4 + 6 + *(DWORD*)(step4 + 2);
-        if (!VirtualProtect(step4, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
-        step4[0] = 0xE9;
-        *(DWORD*)(step4 + 1) = (DWORD)(jzAddr - step4 - 5);
+        PBYTE jzAddr = step4 + 6 + *(DWORD *)(step4 + 2);
+        if (!VirtualProtect(step4, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect))
+            return FALSE;
+        step4[0]              = 0xE9;
+        *(DWORD *)(step4 + 1) = (DWORD)(jzAddr - step4 - 5);
         VirtualProtect(step4, 5, dwOldProtect, &dwOldProtect);
     }
 
-    printf("[CToastCenterExperienceManager::PositionView()] Patched!\n");
+    wprintf(L"[CToastCenterExperienceManager::PositionView()] Patched!\n");
     return TRUE;
 }
 
-BOOL Moment2PatchTaskView(LPMODULEINFO mi)
+static BOOL Moment2PatchTaskView(LPMODULEINFO mi)
 {
     /***
     If we're using the old taskbar, it'll be stuck in an infinite loading since it's waiting for the new one to respond.
@@ -7496,18 +7433,22 @@ BOOL Moment2PatchTaskView(LPMODULEINFO mi)
     ***/
 
     int twoCallsLength = 1 + 18 + 4; // 4C/4D + pattern length + 4 bytes for the 2nd call's call address
-    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x8B\x00\x48\x8D\x55\x00\x48\x8B\x00\xE8\x00\x00\x00\x00\x48\x8B\x08\xE8", "x?xxx?xx?x????xxxx");
+    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x8B\x00\x48\x8D\x55\x00\x48\x8B\x00\xE8\x00\x00\x00\x00\x48\x8B\x08\xE8",
+                              "x?xxx?xx?x????xxxx");
     if (!step1)
     {
         twoCallsLength += 1; // Add 1 to the pattern length
-        step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x8B\x00\x48\x8D\x54\x24\x00\x48\x8B\x00\xE8\x00\x00\x00\x00\x48\x8B\x08\xE8", "x?xxxx?xx?x????xxxx");
+        step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x8B\x00\x48\x8D\x54\x24\x00\x48\x8B\x00\xE8\x00\x00\x00\x00\x48\x8B\x08\xE8",
+                            "x?xxxx?xx?x????xxxx");
         if (!step1) return FALSE;
     }
     step1 -= 1; // Point to the 4C/4D
-    printf("[TaskViewFrame::RuntimeClassInitialize()] step1 = %lX\n", step1 - (PBYTE)mi->lpBaseOfDll);
+    wprintf(L"[TaskViewFrame::RuntimeClassInitialize()] step1 = %p\n",
+            (void *)(step1 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step2 = step1 + twoCallsLength - 13;
-    printf("[TaskViewFrame::RuntimeClassInitialize()] step2 = %lX\n", step2 - (PBYTE)mi->lpBaseOfDll);
+    wprintf(L"[TaskViewFrame::RuntimeClassInitialize()] step2 = %p\n",
+            (void *)(step2 - (PBYTE)mi->lpBaseOfDll));
 
     PBYTE step3 = step2 + 7;
 
@@ -7519,80 +7460,61 @@ BOOL Moment2PatchTaskView(LPMODULEINFO mi)
     memset(step3, 0x90, twoCallsLength - (step3 - step1));
     VirtualProtect(step1, twoCallsLength, dwOldProtect, &dwOldProtect);
 
-    printf("[TaskViewFrame::RuntimeClassInitialize()] Patched!\n");
+    wprintf(L"[TaskViewFrame::RuntimeClassInitialize()] Patched!\n");
     return TRUE;
 }
 
 DEFINE_GUID(SID_EdgeUi,
-    0x0d189b30,
-    0x0f12b, 0x4b13, 0x94, 0xcf,
-    0x53, 0xcb, 0x0e, 0x0e, 0x24, 0x0d
-);
+            0x0D189B30, 0x0F12B, 0x4B13, 0x94, 0xCF, 0x53, 0xCB, 0x0E, 0x0E, 0x24, 0x0D);
 
 DEFINE_GUID(IID_IEdgeUiManager,
-    0x6e6c3c52,
-    0x5a5e, 0x4b4b, 0xa0, 0xf8,
-    0x7f, 0xe1, 0x26, 0x21, 0xa9, 0x3e
-);
+            0x6E6C3C52, 0x5A5E, 0x4B4b, 0xA0, 0xF8, 0x7F, 0xE1, 0x26, 0x21, 0xA9, 0x3E);
 
 // Reimplementation of HardwareConfirmatorHost::GetDisplayRect()
-void WINAPI HardwareConfirmatorShellcode(PBYTE pCoroInstance)
+static void WINAPI HardwareConfirmatorShellcode(PBYTE pCoroInstance)
 {
-    PBYTE pHardwareConfirmatorHost = *(PBYTE*)(pCoroInstance + g_Moment2PatchOffsets.coroInstance_pHardwareConfirmatorHost);
+    PBYTE pHardwareConfirmatorHost = *(PBYTE *)(pCoroInstance + g_Moment2PatchOffsets.coroInstance_pHardwareConfirmatorHost);
 
-    RECT rc;
-    HMONITOR hMonitor = MonitorFromRect(&rc, MONITOR_DEFAULTTOPRIMARY);
+    RECT      rc;
+    IUnknown *pImmersiveShell = NULL;
+    HMONITOR  hMonitor        = MonitorFromRect(&rc, MONITOR_DEFAULTTOPRIMARY);
+    HRESULT   hr = CoCreateInstance(&CLSID_ImmersiveShell, NULL, CLSCTX_LOCAL_SERVER,
+                                    &IID_IServiceProvider, &pImmersiveShell);
 
-    HRESULT hr = S_OK;
-    IUnknown* pImmersiveShell = NULL;
-    hr = CoCreateInstance(
-        &CLSID_ImmersiveShell,
-        NULL,
-        CLSCTX_LOCAL_SERVER,
-        &IID_IServiceProvider,
-        &pImmersiveShell
-    );
-    if (SUCCEEDED(hr))
-    {
-        IImmersiveMonitorService* pMonitorService = NULL;
-        IUnknown_QueryService(
-            pImmersiveShell,
-            &SID_IImmersiveMonitorService,
-            &IID_IImmersiveMonitorService,
-            &pMonitorService
-        );
-        if (pMonitorService)
-        {
-            IUnknown* pEdgeUiManager = NULL;
-            pMonitorService->lpVtbl->QueryService(
-                pMonitorService,
-                hMonitor,
-                &SID_EdgeUi,
-                &IID_IEdgeUiManager,
-                &pEdgeUiManager
-            );
-            if (pEdgeUiManager)
-            {
-                if (*(pHardwareConfirmatorHost + g_Moment2PatchOffsets.hardwareConfirmatorHost_bIsInLockScreen))
-                {
+    if (SUCCEEDED(hr)) {
+        IImmersiveMonitorService *pMonitorService = NULL;
+        IUnknown_QueryService(pImmersiveShell, &SID_IImmersiveMonitorService,
+                              &IID_IImmersiveMonitorService, &pMonitorService);
+
+        if (pMonitorService) {
+            IUnknown *pEdgeUiManager = NULL;
+            pMonitorService->lpVtbl->QueryService(pMonitorService, hMonitor, &SID_EdgeUi,
+                                                  &IID_IEdgeUiManager, &pEdgeUiManager);
+
+            if (pEdgeUiManager) {
+                if (*(pHardwareConfirmatorHost + g_Moment2PatchOffsets.hardwareConfirmatorHost_bIsInLockScreen)) {
                     // Lock screen
                     MONITORINFO mi;
                     mi.cbSize = sizeof(MONITORINFO);
                     if (GetMonitorInfoW(hMonitor, &mi))
                         rc = mi.rcMonitor;
-                }
-                else
-                {
+                } else {
                     // Desktop
-                    HRESULT(*pTheFunc)(IUnknown*, PRECT) = ((void**)pEdgeUiManager->lpVtbl)[19];
+                    HRESULT (*pTheFunc)(IUnknown *, PRECT) = ((void **)pEdgeUiManager->lpVtbl)[19];
                     hr = pTheFunc(pEdgeUiManager, &rc);
                 }
 
-                typedef struct { float x, y, width, height; } Windows_Foundation_Rect;
-                Windows_Foundation_Rect* out = pCoroInstance + g_Moment2PatchOffsets.coroInstance_rcOut;
-                out->x = (float)rc.left;
-                out->y = (float)rc.top;
-                out->width = (float)(rc.right - rc.left);
+                typedef struct Windows_Foundation_Rect {
+                    float x;
+                    float y;
+                    float width;
+                    float height;
+                } Windows_Foundation_Rect;
+
+                Windows_Foundation_Rect *out = pCoroInstance + g_Moment2PatchOffsets.coroInstance_rcOut;
+                out->x      = (float)rc.left;
+                out->y      = (float)rc.top;
+                out->width  = (float)(rc.right - rc.left);
                 out->height = (float)(rc.bottom - rc.top);
 
                 pEdgeUiManager->lpVtbl->Release(pEdgeUiManager);
@@ -7603,10 +7525,10 @@ void WINAPI HardwareConfirmatorShellcode(PBYTE pCoroInstance)
     }
 
     if (FAILED(hr))
-        printf("[HardwareConfirmatorShellcode] Failed. 0x%lX\n", hr);
+        wprintf(L"[HardwareConfirmatorShellcode] Failed. 0x%lX\n", hr);
 }
 
-BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
+static BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
 {
     // Find required offsets
 
@@ -7624,10 +7546,13 @@ BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
     //
     // 22621.2134: 1D55D
     PBYTE match1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x48\x8B\x83\x00\x00\x00\x00\x8A\x80\x00\x00\x00\x00", "xxx????xx????");
-    printf("[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] match1 = %lX\n", match1 - (PBYTE)mi->lpBaseOfDll);
-    if (!match1) return FALSE;
-    g_Moment2PatchOffsets.coroInstance_pHardwareConfirmatorHost = *(int*)(match1 + 3);
-    g_Moment2PatchOffsets.hardwareConfirmatorHost_bIsInLockScreen = *(int*)(match1 + 9);
+    wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] match1 = %p\n",
+            (void *)(match1 - (PBYTE)mi->lpBaseOfDll));
+    if (!match1)
+        return FALSE;
+
+    g_Moment2PatchOffsets.coroInstance_pHardwareConfirmatorHost   = *(int *)(match1 + 3);
+    g_Moment2PatchOffsets.hardwareConfirmatorHost_bIsInLockScreen = *(int *)(match1 + 9);
 
     // coroInstance_rcOut:
     // Also in GetDisplayRectAsync$_ResumeCoro$1, through `case 4:`
@@ -7643,8 +7568,10 @@ BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
     //
     // 22621.2134: 1D624
     PBYTE match2 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x0F\x10\x43\x00\x0F\x11\x84\x24", "xxx?xxxx");
-    printf("[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] match2 = %lX\n", match2 - (PBYTE)mi->lpBaseOfDll);
-    if (!match2) return FALSE;
+    wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] match2 = %p\n",
+            (void *)(match2 - (PBYTE)mi->lpBaseOfDll));
+    if (!match2)
+        return FALSE;
     g_Moment2PatchOffsets.coroInstance_rcOut = *(match2 + 3);
 
     // Find where to put the shellcode
@@ -7655,23 +7582,28 @@ BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
     //
     // 22621.2134: 1D21E
     PBYTE writeAt = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x48\x8D\x4B\x00\x0F", "xxx?x");
-    if (!writeAt) return FALSE;
-    printf("[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] writeAt = %lX\n", writeAt - (PBYTE)mi->lpBaseOfDll);
+    if (!writeAt)
+        return FALSE;
+    wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] writeAt = %p\n",
+            (void *)(writeAt - (PBYTE)mi->lpBaseOfDll));
 
     // In 22621.2134+, after our jump location there is a cleanup for something we skipped. NOP them.
     // From match2, bytes +17 until +37, which is 21 bytes to be NOP'd.
     // 22621.2134: 1D635-1D64A
     PBYTE cleanupBegin = NULL, cleanupEnd = NULL;
-    if (IsWindows11Version22H2Build2134OrHigher())
-    {
+    if (IsWindows11Version22H2Build2134OrHigher()) {
         cleanupBegin = match2 + 17;
-        cleanupEnd = match2 + 38; // Exclusive
-        printf("[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] cleanup = %lX-%lX\n", cleanupBegin - (PBYTE)mi->lpBaseOfDll, cleanupEnd - (PBYTE)mi->lpBaseOfDll);
-        if (*cleanupBegin != 0x49 || *cleanupEnd != 0x90 /*Already NOP here*/) return FALSE;
+        cleanupEnd   = match2 + 38; // Exclusive
+        wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] cleanup = %p-%p\n",
+                (void *)(cleanupBegin - (PBYTE)mi->lpBaseOfDll),
+                (void *)(cleanupEnd - (PBYTE)mi->lpBaseOfDll));
+
+        if (*cleanupBegin != 0x49 || *cleanupEnd != 0x90 /*Already NOP here*/)
+            return FALSE;
     }
 
     // Craft the shellcode
-    BYTE shellcode[] = {
+    static BYTE const shellcode[] = {
         // lea rcx, [rbx+0] ; rbx is the `this` which is the instance of the coro, we pass it to our function
         0x48, 0x8D, 0x0B,
         // mov rax, 1111111111111111h ; placeholder for the address of HardwareConfirmatorShellcode
@@ -7681,31 +7613,33 @@ BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
     };
 
     uintptr_t pattern = 0x1111111111111111;
-    *(PBYTE*)(memmem(shellcode, sizeof(shellcode), &pattern, sizeof(uintptr_t))) = HardwareConfirmatorShellcode;
+    *(PBYTE *)(memmem(shellcode, sizeof(shellcode), &pattern, sizeof(uintptr_t))) = HardwareConfirmatorShellcode;
 
     // Execution
-    DWORD dwOldProtect = 0;
-    SIZE_T totalSize = sizeof(shellcode) + 5;
-    if (!VirtualProtect(writeAt, totalSize, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
+    DWORD  dwOldProtect = 0;
+    SIZE_T totalSize    = sizeof(shellcode) + 5;
+    if (!VirtualProtect(writeAt, totalSize, PAGE_EXECUTE_READWRITE, &dwOldProtect))
+        return FALSE;
     memcpy(writeAt, shellcode, sizeof(shellcode));
-    PBYTE jmpLoc = writeAt + sizeof(shellcode);
-    jmpLoc[0] = 0xE9;
-    *(DWORD*)(jmpLoc + 1) = (DWORD)(match2 - jmpLoc - 5);
+    PBYTE jmpLoc           = writeAt + sizeof(shellcode);
+    jmpLoc[0]              = 0xE9;
+    *(DWORD *)(jmpLoc + 1) = (DWORD)(match2 - jmpLoc - 5);
     VirtualProtect(writeAt, totalSize, dwOldProtect, &dwOldProtect);
 
-    if (cleanupBegin)
-    {
+    if (cleanupBegin) {
         dwOldProtect = 0;
-        if (!VirtualProtect(cleanupBegin, cleanupEnd - cleanupBegin, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
+        if (!VirtualProtect(cleanupBegin, cleanupEnd - cleanupBegin, PAGE_EXECUTE_READWRITE, &dwOldProtect))
+            return FALSE;
         memset(cleanupBegin, 0x90, cleanupEnd - cleanupBegin);
         VirtualProtect(cleanupBegin, cleanupEnd - cleanupBegin, dwOldProtect, &dwOldProtect);
     }
 
-    printf("[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] Patched!\n");
+    wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] Patched!\n");
+    return TRUE;
 }
 #endif
 
-BOOL IsDebuggerPresentHook()
+static BOOL IsDebuggerPresentHook()
 {
     return FALSE;
 }
@@ -7770,7 +7704,7 @@ Inject(BOOL bIsExplorer)
 #ifdef _WIN64
     if (bIsExplorer) {
         funchook = funchook_create();
-        printf("funchook create %d\n", funchook != 0);
+        wprintf(L"funchook create %d\n", funchook != 0);
     }
 #endif
 
@@ -7986,7 +7920,7 @@ Inject(BOOL bIsExplorer)
     ZeroMemory(&symbols_PTRS, sizeof symbols_PTRS);
     if (LoadSymbols(&symbols_PTRS, hModule)) {
         if (bEnableSymbolDownload) {
-            printf("Attempting to download symbol data; for now, the program may have limited functionality.\n");
+            wprintf(L"Attempting to download symbol data; for now, the program may have limited functionality.\n");
             DownloadSymbolsParams *params = malloc(sizeof(DownloadSymbolsParams));
             params->hModule  = hModule;
             params->bVerbose = FALSE;
@@ -7994,7 +7928,7 @@ Inject(BOOL bIsExplorer)
             CloseHandle(hThread);
         }
     } else {
-        printf("Loaded symbols\n");
+        wprintf(L"Loaded symbols\n");
     }
 
     RtlQueryFeatureConfigurationFunc = GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlQueryFeatureConfiguration");
@@ -8005,7 +7939,7 @@ Inject(BOOL bIsExplorer)
             return FALSE;
         }
     }
-    printf("Setup ntdll functions done\n");
+    wprintf(L"Setup ntdll functions done\n");
 
     HANDLE hUser32                = LoadLibraryW(L"user32.dll");
     CreateWindowInBand            = GetProcAddress(hUser32, "CreateWindowInBand");
@@ -8014,7 +7948,7 @@ Inject(BOOL bIsExplorer)
     SetWindowCompositionAttribute = GetProcAddress(hUser32, "SetWindowCompositionAttribute");
     if (!IsWindows11BuildHigherThan25158())
         VnPatchIAT(hUser32, "win32u.dll", "NtUserFindWindowEx", user32_NtUserFindWindowExHook);
-    printf("Setup user32 functions done\n");
+    wprintf(L"Setup user32 functions done\n");
 
     HANDLE hExplorer             = GetModuleHandleW(NULL);
     SetChildWindowNoActivateFunc = GetProcAddress(GetModuleHandleW(L"user32.dll"), (LPCSTR)2005);
@@ -8093,7 +8027,7 @@ Inject(BOOL bIsExplorer)
     VnPatchIAT(hExplorer, "shcore.dll", (LPCSTR)0x6D, explorer_SHCreateStreamOnModuleResourceWHook);
 # endif
 
-    printf("Setup explorer functions done\n");
+    wprintf(L"Setup explorer functions done\n");
 
     CreateWindowExWFunc = CreateWindowExW;
     rv = funchook_prepare(funchook, (void **)&CreateWindowExWFunc, CreateWindowExWHook);
@@ -8118,7 +8052,7 @@ Inject(BOOL bIsExplorer)
     if (bOldTaskbar)
         VnPatchIAT(hExplorer, "uxtheme.dll", (LPCSTR)0x7E, PeopleBand_DrawTextWithGlowHook);
     // DwmExtendFrameIntoClientArea hooked in LoadSettings
-    printf("Setup uxtheme functions done\n");
+    wprintf(L"Setup uxtheme functions done\n");
 
     HANDLE hTwinuiPcshell = LoadLibraryW(L"twinui.pcshell.dll");
 
@@ -8143,7 +8077,7 @@ Inject(BOOL bIsExplorer)
         rv = funchook_prepare(funchook, (void **)&CLauncherTipContextMenu_ShowLauncherTipContextMenuFunc,
                               CLauncherTipContextMenu_ShowLauncherTipContextMenuHook);
         if (rv != 0) {
-            printf("Funchook error number %d\n", rv);
+            wprintf(L"Funchook error number %d\n", rv);
             abort();
             // BUG This causes a deadlock.
             FreeLibraryAndExitThread(hModule, rv);
@@ -8191,19 +8125,20 @@ Inject(BOOL bIsExplorer)
             FreeLibraryAndExitThread(hModule, rv);
             return rv;
         }
-    }*/
+    }
+# endif
 
-#if _WIN64
-#if USE_MOMENT_3_FIXES_ON_MOMENT_2
-    // Use this only for testing, since the RtlQueryFeatureConfiguration() hook is perfect.
-    // Only tested on 22621.1992.
-    BOOL bPerformMoment2Patches = IsWindows11Version22H2Build1413OrHigher();
-#else
-    // This is the only way to fix stuff since the flag "26008830" and the code when it's not enabled are gone.
-    // Tested on 22621.2134, 22621.2283, and 22621.2359 (RP).
-    BOOL bPerformMoment2Patches = IsWindows11Version22H2Build2134OrHigher();
-#endif
+# ifdef USE_MOMENT_3_FIXES_ON_MOMENT_2
+        // Use this only for testing, since the RtlQueryFeatureConfiguration() hook is perfect.
+        // Only tested on 22621.1992.
+        BOOL bPerformMoment2Patches = IsWindows11Version22H2Build1413OrHigher();
+# else
+        // This is the only way to fix stuff since the flag "26008830" and the code when it's not enabled are gone.
+        // Tested on 22621.2134, 22621.2283, and 22621.2359 (RP).
+        BOOL bPerformMoment2Patches = IsWindows11Version22H2Build2134OrHigher();
+# endif
     bPerformMoment2Patches &= global_rovi.dwBuildNumber == 22621 && bOldTaskbar;
+
     if (bPerformMoment2Patches) // TODO Test for 23H2
     {
         MODULEINFO miTwinuiPcshell;
@@ -8218,25 +8153,23 @@ Inject(BOOL bIsExplorer)
         Moment2PatchTaskView(&miTwinuiPcshell);
 
         // Fix volume and brightness popups
-        HANDLE hHardwareConfirmator = LoadLibraryW(L"Windows.Internal.HardwareConfirmator.dll");
+        HANDLE     hHardwareConfirmator = LoadLibraryW(L"Windows.Internal.HardwareConfirmator.dll");
         MODULEINFO miHardwareConfirmator;
         GetModuleInformation(GetCurrentProcess(), hHardwareConfirmator, &miHardwareConfirmator, sizeof(MODULEINFO));
         Moment2PatchHardwareConfirmator(&miHardwareConfirmator);
     }
-#endif
 
     VnPatchIAT(hTwinuiPcshell, "API-MS-WIN-CORE-REGISTRY-L1-1-0.DLL", "RegGetValueW", twinuipcshell_RegGetValueW);
     // VnPatchIAT(hTwinuiPcshell, "api-ms-win-core-debug-l1-1-0.dll", "IsDebuggerPresent",
     // IsDebuggerPresentHook);
-    printf("Setup twinui.pcshell functions done\n");
-
+    wprintf(L"Setup twinui.pcshell functions done\n");
 
     if (IsWindows11Version22H2OrHigher()) {
         HANDLE hCombase = LoadLibraryW(L"combase.dll");
         // Fixed a bug that crashed Explorer when a folder window was opened after a first one was closed on
         // OS builds 22621+
         VnPatchIAT(hCombase, "api-ms-win-core-libraryloader-l1-2-0.dll", "LoadLibraryExW", Windows11v22H2_combase_LoadLibraryExW);
-        printf("Setup combase functions done\n");
+        wprintf(L"Setup combase functions done\n");
     }
 
 
@@ -8245,7 +8178,7 @@ Inject(BOOL bIsExplorer)
         VnPatchIAT(hTwinui, "user32.dll", "TrackPopupMenu", twinui_TrackPopupMenuHook);
     if (bDisableWinFHotkey)
         VnPatchIAT(hTwinui, "user32.dll", "RegisterHotKey", twinui_RegisterHotkeyHook);
-    printf("Setup twinui functions done\n");
+    wprintf(L"Setup twinui functions done\n");
 
 
     HANDLE hStobject = LoadLibraryW(L"stobject.dll");
@@ -8262,7 +8195,7 @@ Inject(BOOL bIsExplorer)
     if (bSkinIcons)
         VnPatchDelayIAT(hStobject, "user32.dll", "LoadImageW", SystemTray_LoadImageWHook);
 # endif
-    printf("Setup stobject functions done\n");
+    wprintf(L"Setup stobject functions done\n");
 
 
     HANDLE hBthprops = LoadLibraryW(L"bthprops.cpl");
@@ -8271,7 +8204,7 @@ Inject(BOOL bIsExplorer)
     if (bSkinIcons)
         VnPatchIAT(hBthprops, "user32.dll", "LoadImageW", SystemTray_LoadImageWHook);
 # endif
-    printf("Setup bthprops functions done\n");
+    wprintf(L"Setup bthprops functions done\n");
 
 
     HANDLE hPnidui = LoadLibraryW(L"pnidui.dll");
@@ -8281,7 +8214,7 @@ Inject(BOOL bIsExplorer)
     if (bSkinIcons)
         VnPatchIAT(hPnidui, "user32.dll", "LoadImageW", SystemTray_LoadImageWHook);
 # endif
-    printf("Setup pnidui functions done\n");
+    wprintf(L"Setup pnidui functions done\n");
 
 
 # ifdef _WIN64
@@ -8364,31 +8297,30 @@ Inject(BOOL bIsExplorer)
         if (IsWindows11())
             VnPatchIAT(hShell32, "user32.dll", "GetSystemMetrics", patched_GetSystemMetrics);
     }
-    printf("Setup shell32 functions done\n");
+    wprintf(L"Setup shell32 functions done\n");
 
 
     HANDLE hExplorerFrame = GetModuleHandleW(L"ExplorerFrame.dll");
     VnPatchIAT(hExplorerFrame, "api-ms-win-core-com-l1-1-0.dll", "CoCreateInstance", ExplorerFrame_CoCreateInstanceHook);
-    printf("Setup explorerframe functions done\n");
+    wprintf(L"Setup explorerframe functions done\n");
 
 
     HANDLE hWindowsStorage               = LoadLibraryW(L"windows.storage.dll");
     SHELL32_CanDisplayWin8CopyDialogFunc = GetProcAddress(hShell32, "SHELL32_CanDisplayWin8CopyDialog");
     if (SHELL32_CanDisplayWin8CopyDialogFunc)
         VnPatchDelayIAT(hWindowsStorage, "ext-ms-win-shell-exports-internal-l1-1-0.dll", "SHELL32_CanDisplayWin8CopyDialog", SHELL32_CanDisplayWin8CopyDialogHook);
-    printf("Setup windows.storage functions done\n");
+    wprintf(L"Setup windows.storage functions done\n");
 
 
     if (IsWindows11()) {
         HANDLE hInputSwitch = LoadLibraryW(L"InputSwitch.dll");
-        if (bOldTaskbar)
-        {
-            printf("[IME] Context menu patch status: %d\n", PatchContextMenuOfNewMicrosoftIME(NULL));
+        if (bOldTaskbar) {
+            BOOL res = PatchContextMenuOfNewMicrosoftIME(NULL);
+            wprintf(L"[IME] Context menu patch status: %d\n", res);
         }
-        if (hInputSwitch)
-        {
+        if (hInputSwitch) {
             VnPatchIAT(hInputSwitch, "user32.dll", "TrackPopupMenuEx", inputswitch_TrackPopupMenuExHook);
-            printf("Setup inputswitch functions done\n");
+            wprintf(L"Setup inputswitch functions done\n");
         }
 
         HANDLE hWindowsudkShellcommon = LoadLibraryW(L"windowsudk.shellcommon.dll");
@@ -8399,7 +8331,7 @@ Inject(BOOL bIsExplorer)
             if (SLGetWindowsInformationDWORDFunc)
                 VnPatchDelayIAT(hWindowsudkShellcommon, "ext-ms-win-security-slc-l1-1-0.dll", "SLGetWindowsInformationDWORD", windowsudkshellcommon_SLGetWindowsInformationDWORDHook);
 
-            printf("Setup windowsudk.shellcommon functions done\n");
+            wprintf(L"Setup windowsudk.shellcommon functions done\n");
         }
     }
 
@@ -8409,7 +8341,7 @@ Inject(BOOL bIsExplorer)
         if (IsOS(OS_ANYSERVER))
             VnPatchIAT(hPeopleBand, "SHLWAPI.dll", (LPCSTR)437, PeopleBand_IsOS);
         VnPatchIAT(hPeopleBand, "api-ms-win-core-largeinteger-l1-1-0.dll", "MulDiv", PeopleBand_MulDivHook);
-        printf("Setup peopleband functions done\n");
+        wprintf(L"Setup peopleband functions done\n");
     }
 
 
@@ -8418,7 +8350,7 @@ Inject(BOOL bIsExplorer)
         FreeLibraryAndExitThread(hModule, rv);
         return rv;
     }
-    printf("Installed hooks.\n");
+    wprintf(L"Installed hooks.\n");
 
 #if 0
     HANDLE hEvent = CreateEventEx(
@@ -8429,25 +8361,24 @@ Inject(BOOL bIsExplorer)
     );
     if (GetLastError() != ERROR_ALREADY_EXISTS)
     {
-        printf("Created ShellDesktopSwitchEvent event.\n");
+        wprintf(L"Created ShellDesktopSwitchEvent event.\n");
         ResetEvent(hEvent);
     }
 #endif
 
     if (bOldTaskbar) {
         if (IsWindows11()) {
-            printf("Starting PlayStartupSound thread...\n");
+            wprintf(L"Starting PlayStartupSound thread...\n");
             hThread = CreateThread(NULL, 0, PlayStartupSound, NULL, 0, NULL);
             CloseHandle(hThread);
         }
     }
 
-
     if (bOldTaskbar) {
         if (IsWindows11()) {
             hThread = CreateThread(NULL, 0, SignalShellReady, (void *)((uintptr_t)dwExplorerReadyDelay), 0, NULL);
             CloseHandle(hThread);
-            printf("Signal shell ready...\n");
+            wprintf(L"Signal shell ready...\n");
         }
     } else {
         hThread = CreateThread(NULL, 0, FixTaskbarAutohide, NULL, 0, NULL);
@@ -8466,55 +8397,31 @@ Inject(BOOL bIsExplorer)
 
 
 # if 0
-    if (IsWindows11())
-    {
+    if (IsWindows11()) {
         DWORD dwSize = 0;
-        if (SHRegGetValueFromHKCUHKLMFunc && SHRegGetValueFromHKCUHKLMFunc(
-            L"Control Panel\\Desktop\\WindowMetrics",
-            L"MinWidth",
-            SRRF_RT_REG_SZ,
-            NULL,
-            NULL,
-            (LPDWORD)(&dwSize)
-        ) != ERROR_SUCCESS)
+        if (SHRegGetValueFromHKCUHKLMFunc &&
+            SHRegGetValueFromHKCUHKLMFunc(
+                L"Control Panel\\Desktop\\WindowMetrics", L"MinWidth",
+                SRRF_RT_REG_SZ, NULL, NULL, (LPDWORD)(&dwSize)) != ERROR_SUCCESS)
         {
-            RegSetKeyValueW(
-                HKEY_CURRENT_USER,
-                L"Control Panel\\Desktop\\WindowMetrics",
-                L"MinWidth",
-                REG_SZ,
-                L"38",
-                sizeof(L"38")
-            );
+            RegSetKeyValueW(HKEY_CURRENT_USER, L"Control Panel\\Desktop\\WindowMetrics",
+                            L"MinWidth", REG_SZ, L"38", sizeof(L"38"));
         }
     }
 # endif
 
 
-    printf("Open Start on monitor thread\n");
+    wprintf(L"Open Start on monitor thread\n");
     hThread = CreateThread(NULL, 0, OpenStartOnCurentMonitorThread, NULL, 0, NULL);
     CloseHandle(hThread);
 
-    printf("Open EP Service Window thread\n");
+    wprintf(L"Open EP Service Window thread\n");
     hServiceWindowThread = CreateThread(NULL, 0, EP_ServiceWindowThread, NULL, 0, NULL);
-
-
-    hServiceWindowThread = CreateThread(
-        0,
-        0,
-        EP_ServiceWindowThread,
-        0,
-        0,
-        0
-    );
-    printf("EP Service Window thread\n");
-
-
 
     // if (bDisableOfficeHotkeys)
     {
         VnPatchIAT(hExplorer, "user32.dll", "RegisterHotKey", explorer_RegisterHotkeyHook);
-
+    }
 
     if (bEnableArchivePlugin) {
         ArchiveMenuThreadParams *params = calloc(1, sizeof(ArchiveMenuThreadParams));
@@ -8957,9 +8864,7 @@ static int Start_SetWindowRgn(HWND hWnd, HRGN hRgn, BOOL bRedraw)
                     mod.hMonitor = NULL;
                     EnumDisplayMonitors(NULL, NULL, ExtractMonitorByIndex, &mod);
                     if (mod.hMonitor == NULL) {
-                        POINT pt;
-                        pt.x                = 0;
-                        pt.y                = 0;
+                        POINT pt = {0, 0};
                         hMonitorOfStartMenu = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
                     } else {
                         hMonitorOfStartMenu = mod.hMonitor;

@@ -93,11 +93,11 @@ extern void printf_guid(GUID guid);
 
 extern LRESULT CALLBACK BalloonWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-__declspec(dllexport) extern int  CALLBACK ZZTestBalloon(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
-__declspec(dllexport) extern void CALLBACK ZZTestToast(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
-__declspec(dllexport) extern void CALLBACK ZZLaunchExplorer(HWND hWnd, HINSTANCE hInstance, PTCHAR lpszCmdLine, int nCmdShow);
-__declspec(dllexport) extern void CALLBACK ZZLaunchExplorerDelayed(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
-__declspec(dllexport) extern void CALLBACK ZZRestartExplorer(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow);
+__declspec(dllexport) extern int  CALLBACK ZZTestBalloon          (HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow);
+__declspec(dllexport) extern void CALLBACK ZZTestToast            (HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow);
+__declspec(dllexport) extern void CALLBACK ZZLaunchExplorer       (HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow);
+__declspec(dllexport) extern void CALLBACK ZZLaunchExplorerDelayed(HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow);
+__declspec(dllexport) extern void CALLBACK ZZRestartExplorer      (HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow);
 
 #ifndef MIN
 # define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
@@ -177,193 +177,6 @@ extern BOOL StartExplorer(void);
 extern BOOL IncrementDLLReferenceCount(HINSTANCE hinst);
 extern BOOL WINAPI PatchContextMenuOfNewMicrosoftIME(BOOL *bFound);
 
-// https://stackoverflow.com/questions/5689904/gracefully-exit-explorer-programmatically
-inline BOOL ExitExplorer()
-{
-    HWND hWndTray = FindWindowW(L"Shell_TrayWnd", NULL);
-    return PostMessageW(hWndTray, 0x5B4, 0, 0);
-}
-
-inline void StartExplorerWithDelay(int delay, HANDLE userToken)
-{
-    WCHAR wszPath[MAX_PATH];
-    ZeroMemory(wszPath, MAX_PATH * sizeof(WCHAR));
-    GetWindowsDirectoryW(wszPath, MAX_PATH);
-    wcscat_s(wszPath, MAX_PATH, L"\\explorer.exe");
-    Sleep(delay);
-    if (userToken != INVALID_HANDLE_VALUE)
-    {
-        HANDLE primaryUserToken = INVALID_HANDLE_VALUE;
-        if (ImpersonateLoggedOnUser(userToken))
-        {
-            DuplicateTokenEx(userToken, MAXIMUM_ALLOWED, NULL, SecurityImpersonation, TokenPrimary, &primaryUserToken);
-            RevertToSelf();
-        }
-        if (primaryUserToken != INVALID_HANDLE_VALUE)
-        {
-            PROCESS_INFORMATION processInfo;
-            ZeroMemory(&processInfo, sizeof(processInfo));
-            STARTUPINFOW startupInfo;
-            ZeroMemory(&startupInfo, sizeof(startupInfo));
-            startupInfo.cb = sizeof(startupInfo);
-            BOOL processCreated = CreateProcessWithTokenW(
-                primaryUserToken, LOGON_WITH_PROFILE, wszPath, NULL, 0, NULL, NULL, &startupInfo, &processInfo) != 0;
-            CloseHandle(primaryUserToken);
-            if (processInfo.hProcess != INVALID_HANDLE_VALUE)
-            {
-                CloseHandle(processInfo.hProcess);
-            }
-            if (processInfo.hThread != INVALID_HANDLE_VALUE)
-            {
-                CloseHandle(processInfo.hThread);
-            }
-            if (processCreated)
-            {
-                return;
-            }
-        }
-    }
-    ShellExecuteW(
-        NULL,
-        L"open",
-        wszPath,
-        NULL,
-        NULL,
-        SW_SHOWNORMAL
-    );
-}
-
-inline void StartExplorer()
-{
-
-    /*PROCESSENTRY32 pe32 = {0};
-    pe32.dwSize = sizeof(PROCESSENTRY32);
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(
-        TH32CS_SNAPPROCESS,
-        0
-    );
-    if (Process32First(hSnapshot, &pe32) == TRUE)
-    {
-        do
-        {
-            if (!wcscmp(pe32.szExeFile, TEXT("explorer.exe")))
-            {
-                HANDLE hSihost = OpenProcess(
-                    PROCESS_TERMINATE,
-                    FALSE,
-                    pe32.th32ProcessID
-                );
-                TerminateProcess(hSihost, 1);
-                CloseHandle(hSihost);
-            }
-        } while (Process32Next(hSnapshot, &pe32) == TRUE);
-    }
-    CloseHandle(hSnapshot);
-    */
-    wchar_t wszPath[MAX_PATH];
-    ZeroMemory(
-        wszPath,
-        (MAX_PATH) * sizeof(wchar_t)
-    );
-    GetWindowsDirectoryW(
-        wszPath,
-        MAX_PATH
-    );
-    wcscat_s(
-        wszPath,
-        MAX_PATH,
-        L"\\explorer.exe"
-    );
-    STARTUPINFO si;
-    ZeroMemory(&si, sizeof(STARTUPINFO));
-    si.cb = sizeof(si);
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
-    if (CreateProcessW(
-        NULL,
-        wszPath,
-        NULL,
-        NULL,
-        TRUE,
-        CREATE_UNICODE_ENVIRONMENT,
-        NULL,
-        NULL,
-        &si,
-        &pi
-    ))
-    {
-        CloseHandle(pi.hThread);
-        CloseHandle(pi.hProcess);
-    }
-}
-
-inline BOOL IncrementDLLReferenceCount(HINSTANCE hinst)
-{
-    HMODULE hMod;
-    GetModuleHandleExW(
-        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-        hinst,
-        &hMod);
-}
-
-inline BOOL WINAPI PatchContextMenuOfNewMicrosoftIME(BOOL* bFound)
-{
-    // huge thanks to @Simplestas: https://github.com/valinet/ExplorerPatcher/issues/598
-    if (bFound) *bFound = FALSE;
-    DWORD patch_from, patch_to;
-    if (IsWindows11Version22H2OrHigher())
-    {
-        // cmp byte ptr [rbp+40h+arg_0], r13b
-        patch_from = 0x506D3844;
-        patch_to = 0x546D3844;
-    }
-    else
-    {
-        // cmp byte ptr [rbp+50h], r12b
-        patch_from = 0x50653844;
-        patch_to = 0x54653844;
-    }
-    HMODULE hInputSwitch = NULL;
-    if (!GetModuleHandleExW(0, L"InputSwitch.dll", &hInputSwitch))
-    {
-        return FALSE;
-    }
-    PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)hInputSwitch;
-    PIMAGE_NT_HEADERS pNTHeader = (PIMAGE_NT_HEADERS)((DWORD_PTR)dosHeader + dosHeader->e_lfanew);
-    PIMAGE_SECTION_HEADER pSectionHeader = (PIMAGE_SECTION_HEADER)(pNTHeader + 1);
-    char* mod = 0;
-    int i;
-    for (i = 0; i < pNTHeader->FileHeader.NumberOfSections; i++)
-    {
-        //if (strcmp((char*)pSectionHeader[i].Name, ".text") == 0)
-        if ((pSectionHeader[i].Characteristics & IMAGE_SCN_CNT_CODE) && pSectionHeader[i].SizeOfRawData)
-        {
-            mod = (char*)dosHeader + pSectionHeader[i].VirtualAddress;
-            break;
-        }
-    }
-    if (!mod)
-    {
-        return FALSE;
-    }
-    for (size_t off = 0; off < pSectionHeader[i].Misc.VirtualSize - sizeof(DWORD); ++off)
-    {
-        DWORD* ptr = (DWORD*)(mod + off);
-        if (*ptr == patch_from)
-        {
-            if (bFound) *bFound = TRUE;
-            DWORD prot;
-            if (VirtualProtect(ptr, sizeof(DWORD), PAGE_EXECUTE_READWRITE, &prot))
-            {
-                *ptr = patch_to;
-                VirtualProtect(ptr, sizeof(DWORD), prot, &prot);
-            }
-            break;
-        }
-    }
-    return TRUE;
-}
-
 extern UINT PleaseWaitTimeout;
 extern HHOOK PleaseWaitHook;
 extern HWND  PleaseWaitHWND;
@@ -406,31 +219,8 @@ typedef struct MonitorOverrideData
     HMONITOR hMonitor;
 } MonitorOverrideData;
 
-BOOL ExtractMonitorByIndex(HMONITOR hMonitor, HDC hDC, LPRECT lpRect, MonitorOverrideData* mod);
+extern BOOL  ExtractMonitorByIndex(HMONITOR hMonitor, HDC hDC, LPRECT lpRect, MonitorOverrideData *mod);
+extern BOOL  MaskCompare(PVOID pBuffer, LPCSTR lpPattern, LPCSTR lpMask);
+extern PVOID FindPattern(PVOID pBase, SIZE_T dwSize, LPCSTR lpPattern, LPCSTR lpMask);
 
-inline BOOL MaskCompare(PVOID pBuffer, LPCSTR lpPattern, LPCSTR lpMask)
-{
-    for (PBYTE value = pBuffer; *lpMask; ++lpPattern, ++lpMask, ++value)
-    {
-        if (*lpMask == 'x' && *(LPCBYTE)lpPattern != *value)
-            return FALSE;
-    }
-
-    return TRUE;
-}
-
-inline PVOID FindPattern(PVOID pBase, SIZE_T dwSize, LPCSTR lpPattern, LPCSTR lpMask)
-{
-    dwSize -= strlen(lpMask);
-
-    for (SIZE_T index = 0; index < dwSize; ++index)
-    {
-        PBYTE pAddress = (PBYTE)pBase + index;
-
-        if (MaskCompare(pAddress, lpPattern, lpMask))
-            return pAddress;
-    }
-
-    return NULL;
-}
 #endif

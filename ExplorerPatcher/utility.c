@@ -261,15 +261,11 @@ L"	<audio src=\"ms-winsoundevent:Notification.Default\" loop=\"false\" silent=\"
 L"</toast>\r\n";
 
 __declspec(dllexport) void CALLBACK
-ZZTestToast(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow)
+ZZTestToast(HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow)
 {
-    WCHAR* lpwszCmdLine = calloc((strlen(lpszCmdLine) + 1), sizeof(WCHAR));
-    if (!lpwszCmdLine) exit(0);
-    size_t numChConv = 0;
-    mbstowcs_s(&numChConv, lpwszCmdLine, strlen(lpszCmdLine) + 1, lpszCmdLine, strlen(lpszCmdLine) + 1);
-
-    size_t const buflen = _countof(TestToastXML) + strlen(lpszCmdLine) + 10;
-    WCHAR* buffer = malloc(buflen * sizeof(WCHAR));
+    size_t const cmdLineSize = wcslen(lpwszCmdLine);
+    size_t const buflen      = _countof(TestToastXML) + cmdLineSize + 10;
+    WCHAR       *buffer      = malloc(buflen * sizeof(WCHAR));
 
     if (buffer)
     {
@@ -288,8 +284,8 @@ ZZTestToast(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow)
         );
         hr = ShowToastMessage(
             inputXml,
-            APPID,
-            sizeof(APPID) / sizeof(WCHAR) - 1,
+            L"" APPID,
+            sizeof(L"" APPID) / sizeof(WCHAR) - 1,
 #ifdef DEBUG
             stdout
 #else
@@ -298,11 +294,10 @@ ZZTestToast(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow)
         );
         free(buffer);
     }
-    free(lpwszCmdLine);
 }
 
 __declspec(dllexport) void CALLBACK
-ZZLaunchExplorer(HWND hWnd, HINSTANCE hInstance, PWCHAR lpszCmdLine, int nCmdShow)
+ZZLaunchExplorer(HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow)
 {
     WCHAR wszExplorerPath[MAX_PATH + 1];
 
@@ -319,14 +314,14 @@ ZZLaunchExplorer(HWND hWnd, HINSTANCE hInstance, PWCHAR lpszCmdLine, int nCmdSho
 }
 
 __declspec(dllexport) void CALLBACK
-ZZLaunchExplorerDelayed(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow)
+ZZLaunchExplorerDelayed(HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow)
 {
     Sleep(2000);
-    ZZLaunchExplorer(hWnd, hInstance, lpszCmdLine, nCmdShow);
+    ZZLaunchExplorer(hWnd, hInstance, lpwszCmdLine, nCmdShow);
 }
 
 __declspec(dllexport) void CALLBACK
-ZZRestartExplorer(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow)
+ZZRestartExplorer(HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow)
 {
     BeginExplorerRestart();
     FinishExplorerRestart();
@@ -1861,14 +1856,7 @@ void StartExplorerWithDelay(int delay, HANDLE userToken)
                 return;
         }
     }
-    ShellExecuteW(
-        NULL,
-        L"open",
-        wszPath,
-        NULL,
-        NULL,
-        SW_SHOWNORMAL
-    );
+    ShellExecuteW(NULL, L"open", wszPath, NULL, NULL, SW_SHOWNORMAL);
 }
 
 BOOL StartExplorer(void)
@@ -1937,8 +1925,16 @@ BOOL IncrementDLLReferenceCount(HINSTANCE hinst)
 BOOL PatchContextMenuOfNewMicrosoftIME(BOOL* bFound)
 {
     // huge thanks to @Simplestas: https://github.com/valinet/ExplorerPatcher/issues/598
-    const DWORD patch_from = 0x50653844u;
-    const DWORD patch_to   = 0x54653844u; // cmp byte ptr [rbp+50h], r12b
+    DWORD patch_from, patch_to;
+    if (IsWindows11Version22H2OrHigher()) {
+        // cmp byte ptr [rbp+40h+arg_0], r13b
+        patch_from = 0x506D3844;
+        patch_to   = 0x546D3844;
+    } else {
+        // cmp byte ptr [rbp+50h], r12b
+        patch_from = 0x50653844;
+        patch_to   = 0x54653844;
+    }
 
     if (bFound)
         *bFound = FALSE;
@@ -1980,3 +1976,27 @@ BOOL PatchContextMenuOfNewMicrosoftIME(BOOL* bFound)
     }
     return TRUE;
 }
+
+BOOL MaskCompare(PVOID pBuffer, LPCSTR lpPattern, LPCSTR lpMask)
+{
+    for (PBYTE value = pBuffer; *lpMask; ++lpPattern, ++lpMask, ++value)
+        if (*lpMask == 'x' && *(LPCBYTE)lpPattern != *value)
+            return FALSE;
+
+    return TRUE;
+}
+
+PVOID FindPattern(PVOID pBase, SIZE_T dwSize, LPCSTR lpPattern, LPCSTR lpMask)
+{
+    dwSize -= strlen(lpMask);
+
+    for (SIZE_T index = 0; index < dwSize; ++index) {
+        PBYTE pAddress = (PBYTE)pBase + index;
+
+        if (MaskCompare(pAddress, lpPattern, lpMask))
+            return pAddress;
+    }
+
+    return NULL;
+}
+

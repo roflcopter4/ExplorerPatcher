@@ -88,9 +88,10 @@ inline BOOL IsWindows11Version22H2Build1413OrHigher(void)
 
 inline BOOL IsWindows11Version22H2Build2134OrHigher()
 {
-    if (IsWindows11BuildHigherThan25158()) return TRUE;
-    if (!global_rovi.dwMajorVersion) global_ubr = VnGetOSVersionAndUBR(&global_rovi);
-    if (global_ubr >= 2134) return TRUE;
-    return FALSE;
+    if (IsWindows11BuildHigherThan25158())
+        return TRUE;
+    if (!global_rovi.dwMajorVersion)
+        global_ubr = VnGetOSVersionAndUBR(&global_rovi);
+    return global_ubr >= 2134;
 }
 #endif
