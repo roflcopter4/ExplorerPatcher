@@ -36,13 +36,13 @@ DEFINE_GUID(uuid_xamlActivationFactory,
             0x34A95314, 0xCA5C, 0x5FAD,
             0xAE, 0x7C, 0x1A, 0x90, 0x18, 0x11, 0x66, 0xC1);
 
-static HRESULT STDMETHODCALLTYPE
+static ULONG STDMETHODCALLTYPE
 vtable_impl_AddRef(IActivationFactory *_this)
 {
     return 1;
 }
 
-static HRESULT STDMETHODCALLTYPE
+static ULONG STDMETHODCALLTYPE
 vtable_impl_Release(IActivationFactory *_this)
 {
     return 1;
@@ -207,16 +207,8 @@ LRESULT CALLBACK BalloonWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 }
 
 __declspec(dllexport) int CALLBACK
-ZZTestBalloon(HWND hWnd, HINSTANCE hInstance, LPSTR lpszCmdLine, int nCmdShow)
+ZZTestBalloon(HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow)
 {
-    size_t   size         = strlen(lpszCmdLine) + 1;
-    wchar_t *lpwszCmdLine = malloc(size * sizeof *lpwszCmdLine);
-    if (!lpwszCmdLine)
-        exit(1);
-    int ret = MultiByteToWideChar(CP_UTF8, 0, lpszCmdLine, (int)size, lpwszCmdLine, (int)size);
-    if (ret != (int)size)
-        exit(1);
-
     MSG        msg;
     WNDCLASSEXW wc = {
         .cbSize        = sizeof(WNDCLASSEX),
@@ -270,28 +262,24 @@ ZZTestToast(HWND hWnd, HINSTANCE hInstance, LPCWSTR lpwszCmdLine, int nCmdShow)
     if (buffer)
     {
         swprintf_s(buffer, buflen, TestToastXML, L"short", lpwszCmdLine);
-        HRESULT hr = S_OK;
-        __x_ABI_CWindows_CData_CXml_CDom_CIXmlDocument* inputXml = NULL;
-        hr = String2IXMLDocument(
-            buffer,
-            wcslen(buffer),
-            &inputXml,
+
+        __x_ABI_CWindows_CData_CXml_CDom_CIXmlDocument *inputXml = NULL;
+
+        String2IXMLDocument(buffer, wcslen(buffer), &inputXml,
 #ifdef DEBUG
-            stdout
+                            stdout
 #else
-            NULL
+                            NULL
 #endif
         );
-        hr = ShowToastMessage(
-            inputXml,
-            L"" APPID,
-            sizeof(L"" APPID) / sizeof(WCHAR) - 1,
+        ShowToastMessage(inputXml, L"" APPID, sizeof(L"" APPID) / sizeof(WCHAR) - 1,
 #ifdef DEBUG
-            stdout
+                         stdout
 #else
-            NULL
+                         NULL
 #endif
         );
+
         free(buffer);
     }
 }
@@ -1334,7 +1322,7 @@ BOOL PleaseWait_UpdateTimeout(int timeout)
     return FALSE;
 }
 
-void CALLBACK PleaseWait_TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void CALLBACK PleaseWait_TimerProc(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
     uint32_t fourChars;
     memcpy(&fourChars, "EPPW", 4);
@@ -1391,30 +1379,17 @@ LRESULT CALLBACK PleaseWait_HookProc(int code, WPARAM wParam, LPARAM lParam)
 
 BOOL DownloadAndInstallWebView2Runtime()
 {
-    BOOL bOK = FALSE;
-    HINTERNET hInternet = NULL;
-    if ((hInternet = InternetOpenA(
-        "ExplorerPatcher",
-        INTERNET_OPEN_TYPE_PRECONFIG,
-        NULL,
-        NULL,
-        0
-    )))
+    BOOL      bOK = FALSE;
+    HINTERNET hInternet;
+
+    if ((hInternet = InternetOpenW(L"ExplorerPatcher", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0)))
     {
-        HINTERNET hConnect = InternetOpenUrlA(
-            hInternet,
-            "https://go.microsoft.com/fwlink/p/?LinkId=2124703",
-            NULL,
-            0,
-            INTERNET_FLAG_RAW_DATA |
-            INTERNET_FLAG_RELOAD |
-            INTERNET_FLAG_RESYNCHRONIZE |
-            INTERNET_FLAG_NO_COOKIES |
-            INTERNET_FLAG_NO_UI |
-            INTERNET_FLAG_NO_CACHE_WRITE |
-            INTERNET_FLAG_DONT_CACHE,
-            NULL
-        );
+        HINTERNET hConnect = InternetOpenUrlW(
+            hInternet, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703", NULL, 0,
+            INTERNET_FLAG_RAW_DATA | INTERNET_FLAG_RELOAD | INTERNET_FLAG_RESYNCHRONIZE |
+            INTERNET_FLAG_NO_COOKIES | INTERNET_FLAG_NO_UI | INTERNET_FLAG_NO_CACHE_WRITE,
+            (DWORD_PTR)NULL);
+
         if (hConnect)
         {
             char* exe_buffer = NULL;
@@ -1446,15 +1421,14 @@ BOOL DownloadAndInstallWebView2Runtime()
                             fwrite(exe_buffer, 1, dwRead, f);
                             fclose(f);
                             SHELLEXECUTEINFOW sei = {
-                                .cbSize = sizeof(sei),
-                                .fMask = SEE_MASK_NOCLOSEPROCESS,
-                                .hwnd = NULL,
-                                .hInstApp = NULL,
-                                .lpVerb = NULL,
-                                .lpFile = wszPath,
+                                .cbSize       = sizeof(sei),
+                                .fMask        = SEE_MASK_NOCLOSEPROCESS,
+                                .hwnd         = NULL,
+                                .hInstApp     = NULL,
+                                .lpVerb       = NULL,
+                                .lpFile       = wszPath,
                                 .lpParameters = L"",
-                                .hwnd = NULL,
-                                .nShow = SW_SHOWMINIMIZED,
+                                .nShow        = SW_SHOWMINIMIZED,
                             };
 
                             if (ShellExecuteExW(&sei) && sei.hProcess)
@@ -1859,6 +1833,8 @@ void StartExplorerWithDelay(int delay, HANDLE userToken)
     ShellExecuteW(NULL, L"open", wszPath, NULL, NULL, SW_SHOWNORMAL);
 }
 
+
+
 BOOL StartExplorer(void)
 {
 #if 0
@@ -1922,32 +1898,33 @@ BOOL IncrementDLLReferenceCount(HINSTANCE hinst)
         &hMod);
 }
 
-BOOL PatchContextMenuOfNewMicrosoftIME(BOOL* bFound)
+BOOL WINAPI PatchContextMenuOfNewMicrosoftIME(BOOL* bFound)
 {
     // huge thanks to @Simplestas: https://github.com/valinet/ExplorerPatcher/issues/598
+    if (bFound) *bFound = FALSE;
     DWORD patch_from, patch_to;
-    if (IsWindows11Version22H2OrHigher()) {
+    if (IsWindows11Version22H2OrHigher())
+    {
         // cmp byte ptr [rbp+40h+arg_0], r13b
         patch_from = 0x506D3844;
-        patch_to   = 0x546D3844;
-    } else {
+        patch_to = 0x546D3844;
+    }
+    else
+    {
         // cmp byte ptr [rbp+50h], r12b
         patch_from = 0x50653844;
-        patch_to   = 0x54653844;
+        patch_to = 0x54653844;
     }
-
-    if (bFound)
-        *bFound = FALSE;
-
     HMODULE hInputSwitch = NULL;
     if (!GetModuleHandleExW(0, L"InputSwitch.dll", &hInputSwitch))
+    {
         return FALSE;
-    PIMAGE_DOS_HEADER     dosHeader      = (PIMAGE_DOS_HEADER)hInputSwitch;
-    PIMAGE_NT_HEADERS     pNTHeader      = (PIMAGE_NT_HEADERS)((DWORD_PTR)dosHeader + dosHeader->e_lfanew);
+    }
+    PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)hInputSwitch;
+    PIMAGE_NT_HEADERS pNTHeader = (PIMAGE_NT_HEADERS)((DWORD_PTR)dosHeader + dosHeader->e_lfanew);
     PIMAGE_SECTION_HEADER pSectionHeader = (PIMAGE_SECTION_HEADER)(pNTHeader + 1);
-
-    char * mod = 0;
-    int    i;
+    char* mod = 0;
+    int i;
     for (i = 0; i < pNTHeader->FileHeader.NumberOfSections; i++)
     {
         //if (strcmp((char*)pSectionHeader[i].Name, ".text") == 0)
@@ -1958,23 +1935,26 @@ BOOL PatchContextMenuOfNewMicrosoftIME(BOOL* bFound)
         }
     }
     if (!mod)
+    {
         return FALSE;
-
+    }
     for (size_t off = 0; off < pSectionHeader[i].Misc.VirtualSize - sizeof(DWORD); ++off)
     {
         DWORD* ptr = (DWORD*)(mod + off);
-        if (*ptr == patch_from) {
-            if (bFound)
-                *bFound = TRUE;
+        if (*ptr == patch_from)
+        {
+            if (bFound) *bFound = TRUE;
             DWORD prot;
-            if (VirtualProtect(ptr, sizeof(DWORD), PAGE_EXECUTE_READWRITE, &prot)) {
+            if (VirtualProtect(ptr, sizeof(DWORD), PAGE_EXECUTE_READWRITE, &prot))
+            {
                 *ptr = patch_to;
                 VirtualProtect(ptr, sizeof(DWORD), prot, &prot);
+                return TRUE;
             }
             break;
         }
     }
-    return TRUE;
+    return FALSE;
 }
 
 BOOL MaskCompare(PVOID pBuffer, LPCSTR lpPattern, LPCSTR lpMask)

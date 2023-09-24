@@ -6,7 +6,7 @@
 //#define USE_PRIVATE_INTERFACES
 #endif
 #define _CRT_RAND_S 1
-#ifdef _DEBUG
+#if defined _DEBUG && !defined DEBUG
 # define DEBUG 1
 #endif
 
@@ -175,7 +175,7 @@ extern BOOL ExitExplorer(void);
 extern void StartExplorerWithDelay(int delay, HANDLE userToken);
 extern BOOL StartExplorer(void);
 extern BOOL IncrementDLLReferenceCount(HINSTANCE hinst);
-extern BOOL WINAPI PatchContextMenuOfNewMicrosoftIME(BOOL *bFound);
+extern BOOL WINAPI PatchContextMenuOfNewMicrosoftIME(BOOL* bFound);
 
 extern UINT PleaseWaitTimeout;
 extern HHOOK PleaseWaitHook;
@@ -184,7 +184,7 @@ extern void *PleaseWaitCallbackData;
 extern BOOL (*PleaseWaitCallbackFunc)(void *data);
 
 extern BOOL             PleaseWait_UpdateTimeout(int timeout);
-extern void CALLBACK    PleaseWait_TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
+extern void CALLBACK    PleaseWait_TimerProc(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 extern LRESULT CALLBACK PleaseWait_HookProc(int code, WPARAM wParam, LPARAM lParam);
 extern BOOL             DownloadAndInstallWebView2Runtime(void);
 extern BOOL             DownloadFile(LPCWSTR wszURL, DWORD dwSize, LPCWSTR wszPath);

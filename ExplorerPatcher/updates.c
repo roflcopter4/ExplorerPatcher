@@ -83,13 +83,13 @@ BOOL IsUpdateAvailableHelper(
 
     if (bUpdatePreferStaging)
     {
-        if (hInternet = InternetOpenA(
-            UPDATES_USER_AGENT,
-            INTERNET_OPEN_TYPE_PRECONFIG,
-            NULL,
-            NULL,
-            0
-        ))
+        if ((hInternet = InternetOpenA(
+                 UPDATES_USER_AGENT,
+                 INTERNET_OPEN_TYPE_PRECONFIG,
+                 NULL,
+                 NULL,
+                 0
+                 )))
         {
             HINTERNET hConnect = InternetOpenUrlA(
                 hInternet,
@@ -113,12 +113,12 @@ BOOL IsUpdateAvailableHelper(
                 if (staging_buffer)
                 {
                     BOOL bRet = FALSE;
-                    if (bRet = InternetReadFile(
-                        hConnect,
-                        staging_buffer,
-                        dwSize - 1,
-                        &dwRead
-                    ))
+                    if ((bRet = InternetReadFile(
+                             hConnect,
+                             staging_buffer,
+                             dwSize - 1,
+                             &dwRead
+                             )))
                     {
                         char* a1 = strstr(staging_buffer, "\"browser_download_url\"");
                         if (a1)
@@ -429,12 +429,12 @@ BOOL IsUpdateAvailableHelper(
                             {
                                 DWORD dwRead = 0;
                                 bRet = FALSE;
-                                while (bRet = InternetReadFile(
-                                    hConnect,
-                                    buffer,
-                                    UPDATES_BUFSIZ,
-                                    &dwRead
-                                ))
+                                while ((bRet = InternetReadFile(
+                                            hConnect,
+                                            buffer,
+                                            UPDATES_BUFSIZ,
+                                            &dwRead
+                                            )))
                                 {
                                     if (dwRead == 0)
                                     {
@@ -908,6 +908,7 @@ BOOL ShowUpdateSuccessNotification(
     }
 
     SwitchToThread();
+    return TRUE;
 }
 
 BOOL InstallUpdatesIfAvailable(

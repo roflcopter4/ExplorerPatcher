@@ -91,6 +91,8 @@ typedef interface EnumExplorerCommand EnumExplorerCommand;
 typedef interface UICommand           UICommand;
 typedef interface ITaskBtnGroup       ITaskBtnGroup;
 
+struct RTL_FEATURE_CONFIGURATION;
+
 /*--------------------------------------------------------------------------------------*/
 
 HMODULE hModule                = NULL;
@@ -746,7 +748,7 @@ static DWORD EP_ServiceWindowThread(DWORD unused)
                         prev_total_h = 0;
                         if (PeopleButton_LastHWND)
                             InvalidateRect(PeopleButton_LastHWND, NULL, TRUE);
-                        // PlaySoundA((LPCTSTR)SND_ALIAS_SYSTEMASTERISK, NULL, SND_ALIAS_ID);
+                        // PlaySoundW((LPCTSTR)SND_ALIAS_SYSTEMASTERISK, NULL, SND_ALIAS_ID);
                     }
                     LeaveCriticalSection(&lock_epw);
                 }
@@ -786,80 +788,95 @@ static BOOL CALLBACK ToggleImmersiveCallback(HWND hWnd, LPARAM lParam)
 
 static void ToggleHelp(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 505, 0);
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 505, 0);
 }
 
 static void ToggleRunDialog(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 502, MAKELPARAM(MOD_WIN, 0x52));
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 502, MAKELPARAM(MOD_WIN, 0x52));
 }
 
 static void ToggleSystemProperties(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 512, 0);
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 512, 0);
 }
 
 static void FocusSystray(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 514, 0);
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 514, 0);
 }
 
 static void TriggerAeroShake(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 515, 0);
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 515, 0);
 }
 
 static void PeekDesktop(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 516, 0);
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 516, 0);
 }
 
 static void ToggleEmojiPanel(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 579, 0);
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 579, 0);
 }
 
 static void ShowDictationPanel(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 577, 0);
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 577, 0);
 }
 
 static void ToggleClipboardViewer(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 578, 0);
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 578, 0);
 }
 
 static void ToggleSearch(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 507, MAKELPARAM(MOD_WIN, 0x53));
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 507, MAKELPARAM(MOD_WIN, 0x53));
 }
 
 static void ToggleTaskView(void)
 {
     HWND  win = FindWindowExW(NULL, NULL, L"ApplicationManager_ImmersiveShellWindow", NULL);
     DWORD id  = GetWindowThreadProcessId(win, NULL);
-    BOOL  res = EnumThreadWindows(id, ToggleImmersiveCallback, 11);
-    //wprintf(L"Toggling Task View callback state (%p, %lu, %d).\n", (void *)win, id, res);
+    EnumThreadWindows(id, ToggleImmersiveCallback, 11);
 }
 
 static void ToggleWidgetsPanel(void)
 {
-    EnumThreadWindows(GetWindowThreadProcessId(FindWindowExW(NULL, NULL, L"ApplicationManager_ImmersiveShellWindow", NULL), NULL), ToggleImmersiveCallback, 0x66);
+    HWND  win = FindWindowExW(NULL, NULL, L"ApplicationManager_ImmersiveShellWindow", NULL);
+    DWORD id  = GetWindowThreadProcessId(win, NULL);
+    EnumThreadWindows(id, ToggleImmersiveCallback, 0x66);
 }
 
 static void ToggleMainClockFlyout(void)
 {
-    EnumThreadWindows(GetWindowThreadProcessId(FindWindowExW(NULL, NULL, L"ApplicationManager_ImmersiveShellWindow", NULL), NULL), ToggleImmersiveCallback, 0x6B);
+    HWND  win = FindWindowExW(NULL, NULL, L"ApplicationManager_ImmersiveShellWindow", NULL);
+    DWORD id  = GetWindowThreadProcessId(win, NULL);
+    EnumThreadWindows(id, ToggleImmersiveCallback, 0x6B);
 }
 
 static void ToggleNotificationsFlyout(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 591, 0);
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 591, 0);
 }
 
 static void ToggleActionCenter(void)
 {
-    PostMessageW(FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL), WM_HOTKEY, 500, MAKELPARAM(MOD_WIN, 0x41));
+    HWND win = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
+    PostMessageW(win, WM_HOTKEY, 500, MAKELPARAM(MOD_WIN, 0x41));
 }
 
 #ifdef _WIN64
@@ -868,9 +885,9 @@ static void ToggleLauncherTipContextMenu(void)
     if (hIsWinXShown) {
         SendMessage(hWinXWnd, WM_CLOSE, 0, 0);
     } else {
-        HWND hWnd = FindWindowEx(NULL, NULL, L"Shell_TrayWnd", NULL);
+        HWND hWnd = FindWindowExW(NULL, NULL, L"Shell_TrayWnd", NULL);
         if (hWnd) {
-            hWnd = FindWindowEx(hWnd, NULL, L"Start", NULL);
+            hWnd = FindWindowExW(hWnd, NULL, L"Start", NULL);
             if (hWnd) {
                 POINT pt = GetDefaultWinXPosition(FALSE, NULL, NULL, TRUE, FALSE);
                 // Finally implemented a variation of
@@ -1148,7 +1165,7 @@ static INT64 CLauncherTipContextMenu_ShowLauncherTipContextMenuHook(void *_this,
             ZeroMemory(wszClassName, 100);
             GetClassNameW(hWndUnder, wszClassName, 100);
             if (WStrEq(wszClassName, L"Shell_TrayWnd") || WStrEq(wszClassName, L"Shell_SecondaryTrayWnd"))
-                hWndUnder = FindWindowEx(hWndUnder, NULL, L"Start", NULL);
+                hWndUnder = FindWindowExW(hWndUnder, NULL, L"Start", NULL);
             RECT rcUnder;
             GetWindowRect(hWndUnder, &rcUnder);
 
@@ -1479,8 +1496,6 @@ DEFINE_GUID(uuidof_Windows_UI_Core_ICoreWindow5,
 
 static HRESULT WINAPI ICoreWindow5_get_DispatcherQueueHook(void *_this, void **ppValue)
 {
-    static unsigned char flg = 0;
-    //if (!_InterlockedExchange8(&flg, 1))
     SendMessageTimeoutW(FindWindowW(L"Shell_TrayWnd", NULL),
                         WM_SETTINGCHANGE, 0, L"EnsureXAML", SMTO_NOTIMEOUTIFNOTHUNG, INFINITE, NULL);
     return ICoreWindow5_get_DispatcherQueueFunc(_this, ppValue);
@@ -1495,10 +1510,8 @@ static HMODULE __fastcall Windows11v22H2_combase_LoadLibraryExW(LPCWSTR lpLibFil
 
     HMODULE hModule = LoadLibraryExW(lpLibFileName, hFile, dwFlags);
 
-    if (hModule && hModule == GetModuleHandleW(L"Windows.Ui.Xaml.dll")) {
-        //if (_InterlockedExchange8(&flg, 1))
-        //    return hModule;
-
+    if (hModule && hModule == GetModuleHandleW(L"Windows.Ui.Xaml.dll") && !InterlockedExchange8(&flg, 1))
+    {
         HSTRING_HEADER hstringHeaderWindowsXamlManager;
         HSTRING        hstringWindowsXamlManager = NULL;
         GetActivationFactory_func_t DllGetActivationFactory =
@@ -2025,11 +2038,11 @@ static INT64 Shell_TrayWndSubclassProc(
     }
     else if (uMsg == WM_SETTINGCHANGE &&
              *((WORD *)&lParam + 1) != NULL &&
-             WStrEq((LPCWSTR)lParam, L"EnsureXAML") &&
-             IsWindows11Version22H2OrHigher())
+             IsWindows11Version22H2OrHigher() &&
+             WStrEq((LPCWSTR)lParam, L"EnsureXAML"))
     {
         //EnsureXAML();
-        ExplorerPatcher_EnsureXAML();
+        //ExplorerPatcher_EnsureXAML();
         return 0;
     }
 
@@ -2161,13 +2174,11 @@ static INT64 ClockButtonSubclassProc(
 
 
 #pragma region "Popup menu hooks"
-static BOOL CheckIfImmersiveContextMenu(HWND unnamedParam1, LPCSTR unnamedParam2, HANDLE unnamedParam3)
+static BOOL CheckIfImmersiveContextMenu(HWND unnamedParam1, LPWSTR unnamedParam2, HANDLE unnamedParam3)
 {
-    if ((*((WORD *)&(unnamedParam2) + 1))) {
-        if (!strncmp(unnamedParam2, "ImmersiveContextMenuArray", 25)) {
-            bIsImmersiveMenu = TRUE;
-            return FALSE;
-        }
+    if (*((WORD *)&unnamedParam2 + 1) && WStrNEq(unnamedParam2, L"ImmersiveContextMenuArray", 25)) {
+        bIsImmersiveMenu = TRUE;
+        return FALSE;
     }
     return TRUE;
 }
@@ -2233,7 +2244,7 @@ static BOOL TrackPopupMenuHookEx(HMENU hMenu, UINT uFlags, int x, int y, HWND hW
                                     WStrEq(wszClassName, L"SysTreeView32"));
 
     if (bIsTaskbar && isExplorerProcess) {
-        EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
+        EnumPropsW(hWnd, CheckIfImmersiveContextMenu);
         if (bIsImmersiveMenu) {
             bIsImmersiveMenu = FALSE;
 #ifndef _WIN64
@@ -2302,7 +2313,7 @@ static BOOL TrackPopupMenuHook(
          WStrEq(wszClassName, L"SHELLDLL_DefView") ||
          WStrEq(wszClassName, L"SysTreeView32")))
     {
-        EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
+        EnumPropsW(hWnd, CheckIfImmersiveContextMenu);
         if (bIsImmersiveMenu) {
             bIsImmersiveMenu = FALSE;
 
@@ -2432,7 +2443,8 @@ static BOOL explorer_TrackPopupMenuExHook(
     GetClassNameW(hWnd, wszClassName, 200);
     BOOL bContainsOwn = FALSE;
     if (bIsExplorerProcess &&
-        (WStrEq(wszClassName, L"Shell_TrayWnd") || WStrEq(wszClassName, L"Shell_SecondaryTrayWnd"))) {
+        (WStrEq(wszClassName, L"Shell_TrayWnd") || WStrEq(wszClassName, L"Shell_SecondaryTrayWnd")))
+    {
         bContainsOwn = CheckIfMenuContainsOwnPropertiesItem(hMenu);
     }
 
@@ -2451,7 +2463,7 @@ static BOOL explorer_TrackPopupMenuExHook(
             PopupMenuAdjustCoordinatesAndFlags(&x, &y, &uFlags);
         bIsImmersiveMenu = FALSE;
         if (!bSkinMenus) {
-            EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
+            EnumPropsW(hWnd, CheckIfImmersiveContextMenu);
             if (bIsImmersiveMenu) {
                 if (ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
                     POINT pt = {x, y};
@@ -2493,7 +2505,7 @@ static BOOL pnidui_TrackPopupMenuHook(
             PopupMenuAdjustCoordinatesAndFlags(&x, &y, &uFlags);
         bIsImmersiveMenu = FALSE;
         if (!bSkinMenus) {
-            EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
+            EnumPropsW(hWnd, CheckIfImmersiveContextMenu);
             if (bIsImmersiveMenu) {
                 if (ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
                     POINT pt = {x, y};
@@ -2533,7 +2545,7 @@ static BOOL sndvolsso_TrackPopupMenuExHook(
             PopupMenuAdjustCoordinatesAndFlags(&x, &y, &uFlags);
         bIsImmersiveMenu = FALSE;
         if (!bSkinMenus) {
-            EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
+            EnumPropsW(hWnd, CheckIfImmersiveContextMenu);
             if (bIsImmersiveMenu) {
                 if (ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
                     POINT pt = {x, y};
@@ -2715,7 +2727,7 @@ static BOOL inputswitch_TrackPopupMenuExHook(
             PopupMenuAdjustCoordinatesAndFlags(&x, &y, &uFlags);
         bIsImmersiveMenu = FALSE;
         if (!bSkinMenus) {
-            EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
+            EnumPropsW(hWnd, CheckIfImmersiveContextMenu);
             if (bIsImmersiveMenu) {
                 if (ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
                     POINT pt = {x, y};
@@ -2753,7 +2765,7 @@ static BOOL twinui_TrackPopupMenuHook(
         }
         bIsImmersiveMenu = FALSE;
         if (!bSkinMenus) {
-            EnumPropsA(hWnd, CheckIfImmersiveContextMenu);
+            EnumPropsW(hWnd, CheckIfImmersiveContextMenu);
             if (bIsImmersiveMenu) {
                 if (ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc) {
                     POINT pt = {x, y};
@@ -3009,7 +3021,7 @@ static HRESULT stobject_CoCreateInstanceHook(
             TerminateShellExperienceHost();
             InvokeFlyout(0, INVOKE_FLYOUT_BATTERY);
             Sleep(100);
-            hCheckForegroundThread = CreateThread(0, 0, CheckForegroundThread, dwVal, 0, 0);
+            hCheckForegroundThread = CreateThread(NULL, 0, CheckForegroundThread, dwVal, 0, NULL);
         }
     }
     return CoCreateInstance(rclsid, pUnkOuter, dwClsContext, riid, ppv);
@@ -3046,7 +3058,7 @@ static HRESULT pnidui_CoCreateInstanceHook(
                 }
                 if (milliseconds_now() - elapsedCheckForeground > CHECKFOREGROUNDELAPSED_TIMEOUT) {
                     LaunchNetworkTargets(dwVal);
-                    hCheckForegroundThread = CreateThread(0, 0, CheckForegroundThread, dwVal, 0, 0);
+                    hCheckForegroundThread = CreateThread(NULL, 0, CheckForegroundThread, dwVal, 0, NULL);
                 }
             } else {
                 LaunchNetworkTargets(dwVal);
@@ -3067,7 +3079,7 @@ static HRESULT pnidui_CoCreateInstanceHook(
             TerminateShellExperienceHost();
             InvokeFlyout(0, INVOKE_FLYOUT_NETWORK);
             Sleep(100);
-            hCheckForegroundThread = CreateThread(0, 0, CheckForegroundThread, dwVal, 0, 0);
+            hCheckForegroundThread = CreateThread(NULL, 0, CheckForegroundThread, dwVal, 0, NULL);
         }
     }
     return CoCreateInstance(rclsid, pUnkOuter, dwClsContext, riid, ppv);
@@ -3234,7 +3246,6 @@ static HRESULT explorer_RoGetActivationFactoryHook(HSTRING activatableClassId, G
     if (WStrEq(StringRawBuffer, L"WindowsUdk.ApplicationModel.AppExtensions.XamlExtensions") &&
         IsEqualGUID(iid, &GUID_18C02F2E_2754_5A20_8BD5_0B34CE79DA2B))
     {
-        Sleep(5000);
         RoGetActivationFactory(activatableClassId, iid, ep_XamlExtensions_BackupFactory);
         *factory = &XamlExtensionsFactory;
         return S_OK;
@@ -3382,8 +3393,7 @@ static void RecomputeWeatherFlyoutLocation(HWND hWnd)
 
         HMONITOR hMonitor = MonitorFromPoint(pButton, MONITOR_DEFAULTTOPRIMARY);
         if (hMonitor) {
-            MONITORINFO mi;
-            mi.cbSize = sizeof(MONITORINFO);
+            MONITORINFO mi = {.cbSize = sizeof mi};
             if (GetMonitorInfoW(hMonitor, &mi)) {
                 if (mi.rcWork.right < pNewWindow.x + (rcWeatherFlyoutWindow.right - rcWeatherFlyoutWindow.left))
                     pNewWindow.x = mi.rcWork.right - (rcWeatherFlyoutWindow.right - rcWeatherFlyoutWindow.left);
@@ -3397,8 +3407,7 @@ static void RecomputeWeatherFlyoutLocation(HWND hWnd)
 
         HMONITOR hMonitor = MonitorFromPoint(pButton, MONITOR_DEFAULTTOPRIMARY);
         if (hMonitor) {
-            MONITORINFO mi;
-            mi.cbSize = sizeof(MONITORINFO);
+            MONITORINFO mi = {.cbSize = sizeof mi};
             if (GetMonitorInfoW(hMonitor, &mi)) {
                 if (mi.rcWork.bottom < pNewWindow.y + (rcWeatherFlyoutWindow.bottom - rcWeatherFlyoutWindow.top))
                     pNewWindow.y = mi.rcWork.bottom - (rcWeatherFlyoutWindow.bottom - rcWeatherFlyoutWindow.top);
@@ -3455,7 +3464,7 @@ static SIZE WINAPI PeopleButton_CalculateMinimumSizeHook(void *_this, SIZE *pSz)
                     UINT        dpiX = 0, dpiY = 0;
                     HMONITOR    hMonitor = MonitorFromWindow(PeopleButton_LastHWND, MONITOR_DEFAULTTOPRIMARY);
                     HRESULT     hr       = GetDpiForMonitor(hMonitor, MDT_DEFAULT, &dpiX, &dpiY);
-                    MONITORINFO mi       = {.cbSize = sizeof(MONITORINFO)};
+                    MONITORINFO mi       = {.cbSize = sizeof mi};
 
                     if (GetMonitorInfoW(hMonitor, &mi)) {
                         DWORD dwTextScaleFactor = 0, dwSize = sizeof(DWORD);
@@ -3658,10 +3667,9 @@ PeopleBand_DrawTextWithGlowHook(
                         WCHAR wszBuffer[MAX_PATH];
                         ZeroMemory(wszBuffer, sizeof(WCHAR) * MAX_PATH);
                         swprintf_s(wszBuffer, MAX_PATH, L"%s %s, %s, ", epw_wszTemperature, epw_wszUnit, epw_wszCondition);
-                        int len = wcslen(wszBuffer);
+                        size_t len = wcslen(wszBuffer);
                         epw->lpVtbl->GetTitle(epw, sizeof(WCHAR) * (MAX_PATH - len), wszBuffer + len, dwWeatherViewMode);
                         SetWindowTextW(PeopleButton_LastHWND, wszBuffer);
-
                         epw->lpVtbl->UnlockData(epw);
                         bShouldUnlockData = FALSE;
                     }
@@ -3707,9 +3715,8 @@ PeopleBand_DrawTextWithGlowHook(
                                 size.cx             = rcText.right - rcText.left;
                                 size.cy             = rcText.bottom - rcText.top;
                                 DWORD   dwTextFlags = DT_SINGLELINE | DT_VCENTER | DT_HIDEPREFIX | DT_CENTER;
-                                HBITMAP hBitmap     = sws_WindowHelpers_CreateAlphaTextBitmap(
-                                    L"\U0001f4f0", hFont, dwTextFlags, size, rgbColor
-                                );
+                                HBITMAP hBitmap     = sws_WindowHelpers_CreateAlphaTextBitmap(L"\U0001f4f0", hFont, dwTextFlags, size, rgbColor);
+
                                 if (hBitmap) {
                                     HBITMAP hOldBMP = SelectBitmap(hDC, hBitmap);
                                     BITMAP  BMInf;
@@ -4376,7 +4383,6 @@ static DWORD WindowSwitcher(DWORD unused)
         WaitForSingleObject(hCanStartSws, INFINITE);
     if (!bOldTaskbar)
         WaitForSingleObject(hWin11AltTabInitialized, INFINITE);
-    Sleep(1000);
 
     while (TRUE) {
         // Sleep(5000);
@@ -4727,7 +4733,7 @@ static void WINAPI LoadSettings(LPARAM lParam)
             LPCWSTR wszLanguagesBuffer = NULL;
             ULONG   cchLanguagesBuffer = 0;
             if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &ulNumLanguages, NULL, &cchLanguagesBuffer)) {
-                if (wszLanguagesBuffer = malloc(cchLanguagesBuffer * sizeof(WCHAR))) {
+                if ((wszLanguagesBuffer = malloc(cchLanguagesBuffer * sizeof(WCHAR)))) {
                     if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &ulNumLanguages, wszLanguagesBuffer, &cchLanguagesBuffer)) {
                         wcscpy_s(wszWeatherLanguage, MAX_PATH, wszLanguagesBuffer);
                         bOk = TRUE;
@@ -4743,7 +4749,7 @@ static void WINAPI LoadSettings(LPARAM lParam)
             LPCWSTR wszLanguagesBuffer = NULL;
             ULONG   cchLanguagesBuffer = 0;
             if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &ulNumLanguages, NULL, &cchLanguagesBuffer)) {
-                if (wszLanguagesBuffer = malloc(cchLanguagesBuffer * sizeof(WCHAR))) {
+                if ((wszLanguagesBuffer = malloc(cchLanguagesBuffer * sizeof(WCHAR)))) {
                     if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &ulNumLanguages, wszLanguagesBuffer, &cchLanguagesBuffer)) {
                         wcscpy_s(wszWeatherLanguage, MAX_PATH, wszLanguagesBuffer);
                         bOk = TRUE;
@@ -5183,7 +5189,7 @@ static HRESULT explorer_DrawThemeBackground(
             OrbInfo *oi = DPA_FastGetPtr(hOrbCollection, i);
             if (oi->hTheme == hTheme) {
                 BITMAPINFO bi = {
-                    .bmiHeader.biSize        = sizeof(BITMAPINFOHEADER),
+                    .bmiHeader.biSize        = sizeof bi,
                     .bmiHeader.biWidth       = 1,
                     .bmiHeader.biHeight      = 1,
                     .bmiHeader.biPlanes      = 1,
@@ -5387,7 +5393,7 @@ static HRESULT explorer_GetThemeMargins(
         pMargins->cyTopHeight    = 10;
         pMargins->cxRightWidth   = 10;
         pMargins->cyBottomHeight = 10;
-    } else if (hTheme = 0xABADBABE && iPropId == TMT_CONTENTMARGINS && iPartId == 3 && iStateId == 0) {
+    } else if (hTheme == 0xABADBABE && iPropId == TMT_CONTENTMARGINS && iPartId == 3 && iStateId == 0) {
         pMargins->cxLeftWidth    = 6; // GetSystemMetrics(SM_CXICONSPACING);
         pMargins->cyTopHeight    = 6; // GetSystemMetrics(SM_CYICONSPACING);
         pMargins->cxRightWidth   = 6; // GetSystemMetrics(SM_CXICONSPACING);
@@ -6496,7 +6502,8 @@ static BOOL explorer_RegisterHotkeyHook(HWND hWnd, int id, UINT fsModifiers, UIN
 #else
         BOOL bPerformMoment2Patches = IsWindows11Version22H2Build2134OrHigher();
 #endif
-        if (bPerformMoment2Patches && global_rovi.dwBuildNumber == 22621 && bOldTaskbar) {
+        if (bPerformMoment2Patches && bOldTaskbar)
+        {
             // Might be better if we scan the GlobalKeylist array to prevent hardcoded numbers?
             RegisterHotKey(hWnd, 500, MOD_WIN | MOD_NOREPEAT, 'A');
             RegisterHotKey(hWnd, 514, MOD_WIN | MOD_NOREPEAT, 'B');
@@ -6761,7 +6768,7 @@ static BOOL shell32_TrackPopupMenu(
     int         y,
     int         nReserved,
     HWND        hWnd,
-    const RECT *prcRect
+    RECT const *prcRect
 )
 {
     if (IsSpotlightEnabled() && dwSpotlightDesktopMenuMask &&
@@ -6779,8 +6786,10 @@ static BOOL shell32_TrackPopupMenu(
             .cbSize = sizeof mii,
             .fMask  = MIIM_FTYPE | MIIM_DATA,
         };
-        if (GetMenuItemInfoW(hMenu, bRet, FALSE, &mii) && mii.dwItemData >= SPOP_CLICKMENU_FIRST &&
-            mii.dwItemData <= SPOP_CLICKMENU_LAST) {
+        if (GetMenuItemInfoW(hMenu, bRet, FALSE, &mii) &&
+            mii.dwItemData >= SPOP_CLICKMENU_FIRST &&
+            mii.dwItemData <= SPOP_CLICKMENU_LAST)
+        {
             SpotlightHelper(mii.dwItemData, hWnd, hMenu, NULL);
         }
     }
@@ -7131,61 +7140,58 @@ static INT64 twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostHook(
     return twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostFunc(a1, a2, a3, a4, a5);
 }
 
+
+#pragma region Moment2Patch
 #ifdef _WIN64
-static struct {
-    int coroInstance_rcOut; // 22621.1992: 0x10
-    int coroInstance_pHardwareConfirmatorHost; // 22621.1992: 0xFD
+
+static struct Moment2PatchOffsets {
+    int coroInstance_rcOut;                      // 22621.1992: 0x10
+    int coroInstance_pHardwareConfirmatorHost;   // 22621.1992: 0xFD
     int hardwareConfirmatorHost_bIsInLockScreen; // 22621.1992: 0xEC
 } g_Moment2PatchOffsets;
 
+static inline PBYTE GetTargetOfJzBeforeMe(PBYTE anchor)
+{
+    // Check big jz
+    if (*(anchor - 6) == 0x0F && *(anchor - 5) == 0x84)
+        return anchor + *(int*)(anchor - 4);
+    // Check small jz
+    if (*(anchor - 2) == 0x74)
+        return anchor + *(char*)(anchor - 1);
+    return NULL;
+}
+
+// CActionCenterExperienceManager::GetViewPosition() patcher
 static BOOL Moment2PatchActionCenter(LPMODULEINFO mi)
 {
-    /***
-    Step 1:
-    Scan within the DLL.
-    ```0F 10 45 ?? F3 0F 7F 07 80 BE // rcMonitor = mi.rcMonitor; // movups - movdqu - cmp```
-    22621.1992: 7E2F0
-    22621.2283: 140D5
+    // Step 1:
+    // Scan within the DLL for `*a2 = mi.rcMonitor`.
+    // ```0F 10 45 ?? F3 0F 7F ?? 80 ?? C8 // movups - movdqu - cmp```
+    // 22621.1992: 7E2F0
+    // 22621.2283: 140D5
+    PBYTE rcMonitorAssignment = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
+                                            "\x0F\x10\x45\x00\xF3\x0F\x7F\x00\x80\x00\xC8", "xxx?xxx?x?x");
+    if (!rcMonitorAssignment)
+        return FALSE;
 
-    22621.1992 has a different compiled code structure than 22621.2283 therefore we have to use a different approach:
-    Short circuiting the `if (26008830 is enabled)`.
-    22621.1992: 7E313
+    wprintf(L"[AC] rcMonitorAssignment = %p\n", (void *)(rcMonitorAssignment - (PBYTE)mi->lpBaseOfDll));
 
-    Step 2:
-    Scan within the function for the real fix.
-    ```0F 10 45 ?? F3 0F 7F 07 48 // *a2 = mi.rcWork; // movups - movdqu - test```
-    22621.2283: 1414B
-
-    Step 3:
-    After the first jz starting from step 1, write a jmp to the address found in step 2.
-    Find within couple bytes from step 1:
-    ```48 8D // lea```
-    22621.2283: 140E6
-
-    Step 4:
-    Change jz to jmp after the real fix, short circuiting `if (b) unconditional_release_ref(...)`.
-    +11 from the movups in step 2.
-    22621.2283: 14156
-    74 -> EB
-    ***/
-
-    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
-                              "\x0F\x10\x45\x00\xF3\x0F\x7F\x07\x80\xBE", "xxx?xxxxxx");
-    if (!step1) return FALSE;
-    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] step1 = %p\n",
-            (void *)(step1 - (PBYTE)mi->lpBaseOfDll));
-
+    // 22621.1992 has a different compiled code structure than 22621.2283 therefore we have to use a different approach:
+    // Short circuiting the `if (26008830 is enabled)`.
+    // 22621.1992: 7E313
     if (!IsWindows11Version22H2Build2134OrHigher()) // We're on 1413-1992
     {
 # ifdef USE_MOMENT_3_FIXES_ON_MOMENT_2
-        PBYTE featureCheckJz = step1 + 35;
-        if (*featureCheckJz != 0x0F && *(featureCheckJz + 1) != 0x84) return FALSE;
+        PBYTE featureCheckJz = rcMonitorAssignment + 35;
+        if (*featureCheckJz != 0x0F && *(featureCheckJz + 1) != 0x84)
+            return FALSE;
 
         DWORD dwOldProtect = 0;
-        PBYTE jzAddr = featureCheckJz + 6 + *(DWORD*)(featureCheckJz + 2);
-        if (!VirtualProtect(featureCheckJz, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
-        featureCheckJz[0] = 0xE9;
-        *(DWORD*)(featureCheckJz + 1) = (DWORD)(jzAddr - featureCheckJz - 5);
+        PBYTE jzAddr       = featureCheckJz + 6 + *(DWORD *)(featureCheckJz + 2);
+        if (!VirtualProtect(featureCheckJz, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect))
+            return FALSE;
+        featureCheckJz[0]              = 0xE9;
+        *(DWORD *)(featureCheckJz + 1) = (DWORD)(jzAddr - featureCheckJz - 5);
         VirtualProtect(featureCheckJz, 5, dwOldProtect, &dwOldProtect);
         goto done;
 # else
@@ -7193,193 +7199,184 @@ static BOOL Moment2PatchActionCenter(LPMODULEINFO mi)
 # endif
     }
 
-    PBYTE step2 = FindPattern(step1 + 1, 200, "\x0F\x10\x45\x00\xF3\x0F\x7F\x07\x48", "xxx?xxxxx");
-    if (!step2) return FALSE;
-    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] step2 = %p\n",
-            (void *)(step2 - (PBYTE)mi->lpBaseOfDll));
+    // Step 2:
+    // Scan within the function for the 8 bytes long `*a2 = mi.rcWork`.
+    // ```0F 10 45 ?? F3 0F 7F ?? 48 // movups - movdqu - test```
+    // 22621.2283: 1414B
+    PBYTE rcWorkAssignment = FindPattern(rcMonitorAssignment + 1, 200,
+                                         "\x0F\x10\x45\x00\xF3\x0F\x7F\x00\x48", "xxx?xxx?x");
+    if (!rcWorkAssignment)
+        return FALSE;
+    wprintf(L"[AC] rcWorkAssignment = %p\n", (void *)(rcWorkAssignment - (PBYTE)mi->lpBaseOfDll));
 
-    PBYTE step3 = FindPattern(step1 + 1, 32, "\x48\x8D", "xx");
-    if (!step3) return FALSE;
-    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] step3 = %p\n",
-            (void *)(step3 - (PBYTE)mi->lpBaseOfDll));
+    // Step 3:
+    // Copy `*a2 = mi.rcWork` into right after the first jz starting from step 1.
+    // Find within couple bytes from step 1:
+    // ```48 8D // lea```
+    // 22621.2283: 140E6
+    PBYTE blockBegin = FindPattern(rcMonitorAssignment + 1, 32, "\x48\x8D", "xx");
+    if (!blockBegin)
+        return FALSE;
+    wprintf(L"[AC] blockBegin = %p\n", (void *)(blockBegin - (PBYTE)mi->lpBaseOfDll));
 
-    PBYTE step4 = step2 + 11;
-    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] step4 = %p\n",
-            (void *)(step4 - (PBYTE)mi->lpBaseOfDll));
-    if (*step4 != 0x74) return FALSE;
+    // Step 4:
+    // Exit the block by writing a long jmp into the address referenced by the jz right before step 3, into right after
+    // the 8 bytes `rcMonitor = mi.rcWork` we've written.
+    PBYTE blockEnd = GetTargetOfJzBeforeMe(blockBegin);
+    if (!blockEnd)
+        return FALSE;
+    wprintf(L"[AC] blockEnd = %p\n", (void *)(blockEnd - (PBYTE)mi->lpBaseOfDll));
 
     // Execution
     DWORD dwOldProtect = 0;
-    if (!VirtualProtect(step3, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
-    step3[0] = 0xE9;
-    *(DWORD*)(step3 + 1) = (DWORD)(step2 - step3 - 5);
-    VirtualProtect(step3, 5, dwOldProtect, &dwOldProtect);
+    if (!VirtualProtect(blockBegin, 8 /**a2 = mi.rcWork*/ + 5 /*jmp*/, PAGE_EXECUTE_READWRITE, &dwOldProtect))
+        return FALSE;
 
-    dwOldProtect = 0;
-    if (!VirtualProtect(step4, 1, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
-    step4[0] = 0xEB;
-    VirtualProtect(step4, 1, dwOldProtect, &dwOldProtect);
+    // Step 2
+    memcpy(blockBegin, rcWorkAssignment, 8);
+
+    // Step 3
+    PBYTE jmpToEnd           = blockBegin + 8;
+    jmpToEnd[0]              = 0xE9;
+    *(DWORD *)(jmpToEnd + 1) = (DWORD)(blockEnd - jmpToEnd - 5);
+
+    VirtualProtect(blockBegin, 8 + 5, dwOldProtect, &dwOldProtect);
 
 done:
-    wprintf(L"[CActionCenterExperienceManager::GetViewPosition()] Patched!\n");
+    wprintf(L"[AC] Patched!\n");
     return TRUE;
 }
 
+// CControlCenterExperienceManager::PositionView() patcher
 static BOOL Moment2PatchControlCenter(LPMODULEINFO mi)
 {
-    /***
-    Step 1:
-    Scan within the DLL.
-    ```0F 10 44 24 ?? F3 0F 7F 44 24 ?? 80 BF // rcMonitor = mi.rcMonitor; // movups - movdqu - cmp```
-    22621.1992: 4B35B
-    22621.2283: 65C5C
-
-    Step 2:
-    Scan within the function for the real fix. This pattern applies to both ControlCenter and ToastCenter.
-    ```0F 10 45 ?? F3 0F 7F 44 24 ?? 48 // rcMonitor = mi.rcWork; // movups - movdqu - test```
-    22621.1992: 4B3FD and 4B418 (The second one is compiled out in later builds)
-    22621.2283: 65CE6
-
-    Step 3:
-    After the first jz starting from step 1, write a jmp to the address found in step 2.
-    Find within couple bytes from step 1:
-    ```48 8D // lea```
-    22621.1992: 4B373
-    22621.2283: 65C74
-
-    Step 4:
-    Change jz to jmp after the real fix, short circuiting `if (b) unconditional_release_ref(...)`.
-    +13 from the movups in step 2.
-    22621.1992: 4B40A
-    22621.2283: 65CE3
-    74 -> EB
-    ***/
-
-    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x0F\x10\x44\x24\x00\xF3\x0F\x7F\x44\x24\x00\x80\xBF",
-                              "xxxx?xxxxx?xx");
-    if (!step1)
+    // Step 1:
+    // Scan within the DLL for `rcMonitor = mi.rcMonitor`.
+    // ```0F 10 44 24 ?? F3 0F 7F 44 24 ?? 80 BF // movups - movdqu - cmp```
+    // 22621.1992: 4B35B
+    // 22621.2283: 65C5C
+    PBYTE rcMonitorAssignment = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
+                                            "\x0F\x10\x44\x24\x00\xF3\x0F\x7F\x44\x24\x00\x80\xBF", "xxxx?xxxxx?xx");
+    if (!rcMonitorAssignment)
         return FALSE;
-    wprintf(L"[CControlCenterExperienceManager::PositionView()] step1 = %p\n",
-            (void *)(step1 - (PBYTE)mi->lpBaseOfDll));
+    wprintf(L"[CC] rcMonitorAssignment = %p\n", (void *)(rcMonitorAssignment - (PBYTE)mi->lpBaseOfDll));
 
-    PBYTE step2 = FindPattern(step1 + 1, 256, "\x0F\x10\x45\x00\xF3\x0F\x7F\x44\x24\x00\x48", "xxx?xxxxx?x");
-    if (!step2)
+    // Step 2:
+    // Scan within the function for the 10 bytes long `rcMonitor = mi.rcWork`.
+    // This pattern applies to both ControlCenter and ToastCenter.
+    // ```0F 10 45 ?? F3 0F 7F 44 24 ?? 48 // movups - movdqu - test```
+    // 22621.1992: 4B3FD and 4B418 (The second one is compiled out in later builds)
+    // 22621.2283: 65CE6
+    PBYTE rcWorkAssignment = FindPattern(rcMonitorAssignment + 1, 256,
+                                         "\x0F\x10\x45\x00\xF3\x0F\x7F\x44\x24\x00\x48", "xxx?xxxxx?x");
+    if (!rcWorkAssignment)
         return FALSE;
-    wprintf(L"[CControlCenterExperienceManager::PositionView()] step2 = %p\n",
-            (void *)(step2 - (PBYTE)mi->lpBaseOfDll));
+    wprintf(L"[CC] rcWorkAssignment = %p\n", (void *)(rcWorkAssignment - (PBYTE)mi->lpBaseOfDll));
 
-    PBYTE step3 = FindPattern(step1 + 1, 32, "\x48\x8D", "xx");
-    if (!step3)
+    // Step 3:
+    // Copy the `rcMonitor = mi.rcWork` into right after the first jz starting from step 1.
+    // Find within couple bytes from step 1:
+    // ```48 8D // lea```
+    // 22621.1992: 4B373
+    // 22621.2283: 65C74
+    PBYTE blockBegin = FindPattern(rcMonitorAssignment + 1, 32, "\x48\x8D", "xx");
+    if (!blockBegin)
         return FALSE;
-    wprintf(L"[CControlCenterExperienceManager::PositionView()] step3 = %p\n",
-            (void *)(step3 - (PBYTE)mi->lpBaseOfDll));
+    wprintf(L"[CC] blockBegin = %p\n", (void *)(blockBegin - (PBYTE)mi->lpBaseOfDll));
 
-    PBYTE step4 = step2 + 13;
-    wprintf(L"[CControlCenterExperienceManager::PositionView()] step4 = %p\n",
-            (void *)(step4 - (PBYTE)mi->lpBaseOfDll));
-
-    if (*step4 != 0x74)
+    // Step 4:
+    // Exit the block by writing a long jmp into the address referenced by the jz right before step 3, into right after
+    // the 10 bytes `rcMonitor = mi.rcWork` we've written.
+    PBYTE blockEnd = GetTargetOfJzBeforeMe(blockBegin);
+    if (!blockEnd)
         return FALSE;
+    wprintf(L"[CC] blockEnd = %p\n", (void *)(blockEnd - (PBYTE)mi->lpBaseOfDll));
 
     // Execution
     DWORD dwOldProtect = 0;
-    if (!VirtualProtect(step3, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
-    step3[0] = 0xE9;
-    *(DWORD*)(step3 + 1) = (DWORD)(step2 - step3 - 5);
-    VirtualProtect(step3, 5, dwOldProtect, &dwOldProtect);
+    if (!VirtualProtect(blockBegin, 10 /*rcMonitor = mi.rcWork*/ + 5 /*jmp*/, PAGE_EXECUTE_READWRITE, &dwOldProtect))
+        return FALSE;
 
-    dwOldProtect = 0;
-    if (!VirtualProtect(step4, 1, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
-    step4[0] = 0xEB;
-    VirtualProtect(step4, 1, dwOldProtect, &dwOldProtect);
+    // Step 2
+    memcpy(blockBegin, rcWorkAssignment, 10);
 
-    wprintf(L"[CControlCenterExperienceManager::PositionView()] Patched!\n");
+    // Step 3
+    PBYTE jmpToEnd          = blockBegin + 10;
+    jmpToEnd[0] = 0xE9;
+    *(DWORD*)(jmpToEnd + 1) = (DWORD)(blockEnd - jmpToEnd - 5);
+
+    VirtualProtect(blockBegin, 10 + 5, dwOldProtect, &dwOldProtect);
+
+    wprintf(L"[CC] Patched!\n");
     return TRUE;
 }
 
+// CToastCenterExperienceManager::PositionView() patcher
 static BOOL Moment2PatchToastCenter(LPMODULEINFO mi)
 {
-    /***
-    Step 1:
-    Scan within the DLL.
-    ```0F 10 45 84 ?? 0F 7F 44 24 ?? 48 8B CF // rcMonitor = mi.rcMonitor; // movups - movdqu - mov```
-    22621.1992: 40CE8
-    22621.2283: 501DB
-
-    Step 2:
-    Scan within the function for the real fix. This pattern applies to both ControlCenter and ToastCenter.
-    ```0F 10 45 ?? F3 0F 7F 44 24 ?? 48 // rcMonitor = mi.rcWork; // movups - movdqu - test```
-    22621.1992: 40D8B
-    22621.2283: 5025D
-
-    Step 3:
-    After the first jz starting from step 1, write a jmp to the address found in step 2.
-    Find within couple bytes from step 1:
-    ```48 8D // lea```
-    22621.1992: 40D02
-    22621.2283: 501F5
-
-    Step 4:
-    Change jz to jmp after the real fix, short circuiting `if (b) unconditional_release_ref(...)`.
-    +13 from the movups in step 2.
-    22621.1992: 40D98
-    22621.2283: 5026A
-
-    Note: We are skipping EdgeUI calls here.
-    ***/
-
-    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x0F\x10\x45\x84\x00\x0F\x7F\x44\x24\x00\x48\x8B\xCF", "xxxx?xxxx?xxx");
-    if (!step1) return FALSE;
-    wprintf(L"[CToastCenterExperienceManager::PositionView()] step1 = %p\n",
-            (void *)(step1 - (PBYTE)mi->lpBaseOfDll));
-
-    PBYTE step2 = FindPattern(step1 + 1, 200, "\x0F\x10\x45\x00\xF3\x0F\x7F\x44\x24\x00\x48", "xxx?xxxxx?x");
-    if (!step2) return FALSE;
-    wprintf(L"[CToastCenterExperienceManager::PositionView()] step2 = %p\n",
-            (void *)(step2 - (PBYTE)mi->lpBaseOfDll));
-
-    PBYTE step3 = FindPattern(step1 + 1, 32, "\x48\x8D", "xx");
-    if (!step3) return FALSE;
-    wprintf(L"[CToastCenterExperienceManager::PositionView()] step3 = %p\n",
-            (void *)(step3 - (PBYTE)mi->lpBaseOfDll));
-
-    PBYTE step4 = step2 + 13;
-    wprintf(L"[CToastCenterExperienceManager::PositionView()] step4 = %p\n",
-            (void *)(step4 - (PBYTE)mi->lpBaseOfDll));
-
-    if (*step4 != 0x0F /*When the else block is big*/ && *step4 != 0x74)
+    // Step 1:
+    // Scan within the DLL for `rcMonitor = mi.rcMonitor`.
+    // ```0F 10 45 84 ?? 0F 7F 44 24 ?? 48 8B CF // movups - movdqu - mov```
+    // 22621.1992: 40CE8
+    // 22621.2283: 501DB
+    PBYTE rcMonitorAssignment = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
+                                            "\x0F\x10\x45\x84\x00\x0F\x7F\x44\x24\x00\x48\x8B\xCF", "xxxx?xxxx?xxx");
+    if (!rcMonitorAssignment)
         return FALSE;
+    wprintf(L"[TC] rcMonitorAssignment = %p\n", (void *)(rcMonitorAssignment - (PBYTE)mi->lpBaseOfDll));
+
+    // Step 2:
+    // Scan within the function for the 10 bytes long `rcMonitor = mi.rcWork`.
+    // This pattern applies to both ControlCenter and ToastCenter.
+    // ```0F 10 45 ?? F3 0F 7F 44 24 ?? 48 // movups - movdqu - test```
+    // 22621.1992: 40D8B
+    // 22621.2283: 5025D
+    PBYTE rcWorkAssignment = FindPattern(rcMonitorAssignment + 1, 200,
+                                         "\x0F\x10\x45\x00\xF3\x0F\x7F\x44\x24\x00\x48", "xxx?xxxxx?x");
+    if (!rcWorkAssignment)
+        return FALSE;
+    wprintf(L"[TC] rcWorkAssignment = %p\n", (void *)(rcWorkAssignment - (PBYTE)mi->lpBaseOfDll));
+
+    // Step 3:
+    // Copy the `rcMonitor = mi.rcWork` into right after the first jz starting from step 1.
+    // Find within couple bytes from step 1:
+    // ```48 8D // lea```
+    // 22621.1992: 40D02
+    // 22621.2283: 501F5
+    PBYTE blockBegin = FindPattern(rcMonitorAssignment + 1, 32, "\x48\x8D", "xx");
+    if (!blockBegin)
+        return FALSE;
+    wprintf(L"[TC] blockBegin = %p\n", (void *)(blockBegin - (PBYTE)mi->lpBaseOfDll));
+
+    // Step 4:
+    // Exit the block by writing a long jmp into the address referenced by the jz right before step 3, into right after
+    // the 10 bytes `rcMonitor = mi.rcWork` we've written.
+    //
+    // Note: We are skipping EdgeUI calls here.
+    PBYTE blockEnd = GetTargetOfJzBeforeMe(blockBegin);
+    if (!blockEnd)
+        return FALSE;
+    wprintf(L"[TC] blockEnd = %p\n", (void *)(blockEnd - (PBYTE)mi->lpBaseOfDll));
 
     // Execution
     DWORD dwOldProtect = 0;
-    if (!VirtualProtect(step3, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect))
-        return FALSE;
+    if (!VirtualProtect(blockBegin, 10 /*rcMonitor = mi.rcWork*/ + 5 /*jmp*/, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
 
-    step3[0] = 0xE9;
-    *(DWORD *)(step3 + 1) = (DWORD)(step2 - step3 - 5);
-    VirtualProtect(step3, 5, dwOldProtect, &dwOldProtect);
+    // Step 2
+    memcpy(blockBegin, rcWorkAssignment, 10);
 
-    dwOldProtect = 0;
-    if (*step4 == 0x74) // Same size, just change the opcode
-    {
-        if (!VirtualProtect(step4, 1, PAGE_EXECUTE_READWRITE, &dwOldProtect))
-            return FALSE;
-        step4[0] = 0xEB;
-        VirtualProtect(step4, 1, dwOldProtect, &dwOldProtect);
-    } else // The big one
-    {
-        PBYTE jzAddr = step4 + 6 + *(DWORD *)(step4 + 2);
-        if (!VirtualProtect(step4, 5, PAGE_EXECUTE_READWRITE, &dwOldProtect))
-            return FALSE;
-        step4[0]              = 0xE9;
-        *(DWORD *)(step4 + 1) = (DWORD)(jzAddr - step4 - 5);
-        VirtualProtect(step4, 5, dwOldProtect, &dwOldProtect);
-    }
+    // Step 3
+    PBYTE jmpToEnd = blockBegin + 10;
+    jmpToEnd[0] = 0xE9;
+    *(DWORD*)(jmpToEnd + 1) = (DWORD)(blockEnd - jmpToEnd - 5);
 
-    wprintf(L"[CToastCenterExperienceManager::PositionView()] Patched!\n");
+    VirtualProtect(blockBegin, 10 + 5, dwOldProtect, &dwOldProtect);
+
+    wprintf(L"[TC] Patched!\n");
     return TRUE;
 }
 
+// TaskViewFrame::RuntimeClassInitialize() patcher
 static BOOL Moment2PatchTaskView(LPMODULEINFO mi)
 {
     /***
@@ -7392,12 +7389,12 @@ static BOOL Moment2PatchTaskView(LPMODULEINFO mi)
     It should be 4C 8B or 4D 8B (mov r8, ...).
     For the patterns, they're +1 from the result since it can be either of those.
 
-    Pattern 1 (up to 22621.2134):
+    Pattern 1:
     ```8B ?? 48 8D 55 ??    48 8B ?? E8 ?? ?? ?? ?? 48 8B 08 E8```
     22621.1992: 7463C
     22621.2134: 3B29C
 
-    Pattern 2 (22621.2283+):
+    Pattern 2:
     ```8B ?? 48 8D 54 24 ?? 48 8B ?? E8 ?? ?? ?? ?? 48 8B 08 E8```
     22621.2283: 24A1D2
 
@@ -7415,11 +7412,11 @@ static BOOL Moment2PatchTaskView(LPMODULEINFO mi)
 
     Summary:
     ```
-       48 8B ?? 48 8D 55 ??    48 8B ?? E8 ?? ?? ?? ?? 48 8B 08 E8 ?? ?? ?? ?? // ~22621.2134
-       48 8B ?? 48 8D 54 24 ?? 48 8B ?? E8 ?? ?? ?? ?? 48 8B 08 E8 ?? ?? ?? ?? // 22621.2283~
+       48 8B ?? 48 8D 55 ??    48 8B ?? E8 ?? ?? ?? ?? 48 8B 08 E8 ?? ?? ?? ?? // Pattern 1
+       48 8B ?? 48 8D 54 24 ?? 48 8B ?? E8 ?? ?? ?? ?? 48 8B 08 E8 ?? ?? ?? ?? // Pattern 2
        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^
        1st: TaskViewFrame::UpdateWorkAreaAsync()       2nd: WaitForCompletion()
-       48 8B ?? 48 8D 54 24 ?? 48 8B ?? 48 C7 02 00 00 00 00 90 90 90 90 90 90 // Result
+       48 8B ?? 48 8D 54 24 ?? 48 8B ?? 48 C7 02 00 00 00 00 90 90 90 90 90 90 // Result according to Pattern 2
        -------------------------------- xxxxxxxxxxxxxxxxxxxx xxxxxxxxxxxxxxxxx
        We need rdx                      Step 2               Step 3
     ```
@@ -7433,34 +7430,35 @@ static BOOL Moment2PatchTaskView(LPMODULEINFO mi)
     ***/
 
     int twoCallsLength = 1 + 18 + 4; // 4C/4D + pattern length + 4 bytes for the 2nd call's call address
-    PBYTE step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x8B\x00\x48\x8D\x55\x00\x48\x8B\x00\xE8\x00\x00\x00\x00\x48\x8B\x08\xE8",
-                              "x?xxx?xx?x????xxxx");
-    if (!step1)
+    PBYTE firstCallPrep = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
+                                      "\x8B\x00\x48\x8D\x55\x00\x48\x8B\x00\xE8\x00\x00\x00\x00\x48\x8B\x08\xE8",
+                                      "x?xxx?xx?x????xxxx");
+    if (!firstCallPrep)
     {
         twoCallsLength += 1; // Add 1 to the pattern length
-        step1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x8B\x00\x48\x8D\x54\x24\x00\x48\x8B\x00\xE8\x00\x00\x00\x00\x48\x8B\x08\xE8",
-                            "x?xxxx?xx?x????xxxx");
-        if (!step1) return FALSE;
+        firstCallPrep = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
+                                    "\x8B\x00\x48\x8D\x54\x24\x00\x48\x8B\x00\xE8\x00\x00\x00\x00\x48\x8B\x08\xE8",
+                                    "x?xxxx?xx?x????xxxx");
+        if (!firstCallPrep)
+            return FALSE;
     }
-    step1 -= 1; // Point to the 4C/4D
-    wprintf(L"[TaskViewFrame::RuntimeClassInitialize()] step1 = %p\n",
-            (void *)(step1 - (PBYTE)mi->lpBaseOfDll));
+    firstCallPrep -= 1; // Point to the 4C/4D
+    wprintf(L"[TV] firstCallPrep = %p\n", (void *)(firstCallPrep - (PBYTE)mi->lpBaseOfDll));
 
-    PBYTE step2 = step1 + twoCallsLength - 13;
-    wprintf(L"[TaskViewFrame::RuntimeClassInitialize()] step2 = %p\n",
-            (void *)(step2 - (PBYTE)mi->lpBaseOfDll));
+    PBYTE firstCallCall = firstCallPrep + twoCallsLength - 13;
+    wprintf(L"[TV] firstCallCall = %p\n", (void *)(firstCallCall - (PBYTE)mi->lpBaseOfDll));
 
-    PBYTE step3 = step2 + 7;
+    PBYTE nopBegin = firstCallCall + 7;
 
     // Execution
     DWORD dwOldProtect = 0;
-    if (!VirtualProtect(step1, twoCallsLength, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
+    if (!VirtualProtect(firstCallPrep, twoCallsLength, PAGE_EXECUTE_READWRITE, &dwOldProtect)) return FALSE;
     const BYTE step2Payload[] = { 0x48, 0xC7, 0x02, 0x00, 0x00, 0x00, 0x00 };
-    memcpy(step2, step2Payload, sizeof(step2Payload));
-    memset(step3, 0x90, twoCallsLength - (step3 - step1));
-    VirtualProtect(step1, twoCallsLength, dwOldProtect, &dwOldProtect);
+    memcpy(firstCallCall, step2Payload, sizeof(step2Payload));
+    memset(nopBegin, 0x90, twoCallsLength - (nopBegin - firstCallPrep));
+    VirtualProtect(firstCallPrep, twoCallsLength, dwOldProtect, &dwOldProtect);
 
-    wprintf(L"[TaskViewFrame::RuntimeClassInitialize()] Patched!\n");
+    wprintf(L"[TV] Patched!\n");
     return TRUE;
 }
 
@@ -7528,6 +7526,7 @@ static void WINAPI HardwareConfirmatorShellcode(PBYTE pCoroInstance)
         wprintf(L"[HardwareConfirmatorShellcode] Failed. 0x%lX\n", hr);
 }
 
+// [HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1() patcher
 static BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
 {
     // Find required offsets
@@ -7545,11 +7544,13 @@ static BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
     //                                    ^ HCH  ^ bIsInLockScreen
     //
     // 22621.2134: 1D55D
-    PBYTE match1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x48\x8B\x83\x00\x00\x00\x00\x8A\x80\x00\x00\x00\x00", "xxx????xx????");
-    wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] match1 = %p\n",
-            (void *)(match1 - (PBYTE)mi->lpBaseOfDll));
+    PBYTE match1 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
+                               "\x48\x8B\x83\x00\x00\x00\x00\x8A\x80\x00\x00\x00\x00", "xxx????xx????");
+    wprintf(L"[HC] match1 = %p\n", (void *)(match1 - (PBYTE)mi->lpBaseOfDll));
     if (!match1)
         return FALSE;
+    g_Moment2PatchOffsets.coroInstance_pHardwareConfirmatorHost   = *(int *)(match1 + 3);
+    g_Moment2PatchOffsets.hardwareConfirmatorHost_bIsInLockScreen = *(int *)(match1 + 9);
 
     g_Moment2PatchOffsets.coroInstance_pHardwareConfirmatorHost   = *(int *)(match1 + 3);
     g_Moment2PatchOffsets.hardwareConfirmatorHost_bIsInLockScreen = *(int *)(match1 + 9);
@@ -7567,9 +7568,9 @@ static BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
     // 0F 11 84 24 D0 00 00 00  movups  [rsp+158h+var_88], xmm0
     //
     // 22621.2134: 1D624
-    PBYTE match2 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x0F\x10\x43\x00\x0F\x11\x84\x24", "xxx?xxxx");
-    wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] match2 = %p\n",
-            (void *)(match2 - (PBYTE)mi->lpBaseOfDll));
+    PBYTE match2 = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
+                               "\x0F\x10\x43\x00\x0F\x11\x84\x24", "xxx?xxxx");
+    wprintf(L"[HC] match2 = %p\n", (void *)(match2 - (PBYTE)mi->lpBaseOfDll));
     if (!match2)
         return FALSE;
     g_Moment2PatchOffsets.coroInstance_rcOut = *(match2 + 3);
@@ -7581,11 +7582,11 @@ static BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
     // *(_QWORD *)(this + 48) = MonitorFromRect((LPCRECT)(this + 32), 1u);
     //
     // 22621.2134: 1D21E
-    PBYTE writeAt = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage, "\x48\x8D\x4B\x00\x0F", "xxx?x");
+    PBYTE writeAt = FindPattern(mi->lpBaseOfDll, mi->SizeOfImage,
+                                "\x48\x8D\x4B\x00\x0F", "xxx?x");
     if (!writeAt)
         return FALSE;
-    wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] writeAt = %p\n",
-            (void *)(writeAt - (PBYTE)mi->lpBaseOfDll));
+    wprintf(L"[HC] writeAt = %p\n", (void *)(writeAt - (PBYTE)mi->lpBaseOfDll));
 
     // In 22621.2134+, after our jump location there is a cleanup for something we skipped. NOP them.
     // From match2, bytes +17 until +37, which is 21 bytes to be NOP'd.
@@ -7594,16 +7595,17 @@ static BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
     if (IsWindows11Version22H2Build2134OrHigher()) {
         cleanupBegin = match2 + 17;
         cleanupEnd   = match2 + 38; // Exclusive
-        wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] cleanup = %p-%p\n",
+
+        wprintf(L"[HC] cleanup = %p-%p\n",
                 (void *)(cleanupBegin - (PBYTE)mi->lpBaseOfDll),
-                (void *)(cleanupEnd - (PBYTE)mi->lpBaseOfDll));
+                (void *)(cleanupEnd   - (PBYTE)mi->lpBaseOfDll));
 
         if (*cleanupBegin != 0x49 || *cleanupEnd != 0x90 /*Already NOP here*/)
             return FALSE;
     }
 
     // Craft the shellcode
-    static BYTE const shellcode[] = {
+    BYTE shellcode[] = {
         // lea rcx, [rbx+0] ; rbx is the `this` which is the instance of the coro, we pass it to our function
         0x48, 0x8D, 0x0B,
         // mov rax, 1111111111111111h ; placeholder for the address of HardwareConfirmatorShellcode
@@ -7612,8 +7614,11 @@ static BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
         0xFF, 0xD0
     };
 
-    uintptr_t pattern = 0x1111111111111111;
-    *(PBYTE *)(memmem(shellcode, sizeof(shellcode), &pattern, sizeof(uintptr_t))) = HardwareConfirmatorShellcode;
+    //const uint64_t pattern = 0x1111111111111111;
+    //BYTE **location = memmem(shellcode, sizeof shellcode, &pattern, sizeof pattern);
+    //*location = HardwareConfirmatorShellcode;
+
+    memcpy(shellcode + 5, &HardwareConfirmatorShellcode, sizeof &HardwareConfirmatorShellcode);
 
     // Execution
     DWORD  dwOldProtect = 0;
@@ -7634,10 +7639,13 @@ static BOOL Moment2PatchHardwareConfirmator(LPMODULEINFO mi)
         VirtualProtect(cleanupBegin, cleanupEnd - cleanupBegin, dwOldProtect, &dwOldProtect);
     }
 
-    wprintf(L"[HardwareConfirmatorHost::GetDisplayRectAsync$_ResumeCoro$1()] Patched!\n");
+    wprintf(L"[HC] Patched!\n");
     return TRUE;
 }
+
 #endif
+#pragma endregion
+
 
 static BOOL IsDebuggerPresentHook()
 {
@@ -7677,6 +7685,227 @@ static BOOL explorer_IsOS(DWORD dwOS)
     return IsOS(dwOS);
 }
 
+static void inject_twinui_pcshell(symbols_addr symbols_PTRS)
+{
+    int rv = -1;
+    MODULEINFO miTwinuiPcShell;
+    HANDLE     hTwinuiPcShell = LoadLibraryW(L"twinui.pcshell.dll");
+    GetModuleInformation(GetCurrentProcess(), hTwinuiPcShell, &miTwinuiPcShell, sizeof(MODULEINFO));
+
+# define VALID(n) (symbols_PTRS.twinui_pcshell_PTRS[n] && symbols_PTRS.twinui_pcshell_PTRS[n] != 0xFFFFFFFFu)
+# define GETSYMB(n) ((uintptr_t)hTwinuiPcShell + symbols_PTRS.twinui_pcshell_PTRS[n])
+
+    if (IsWindows11Version22H2OrHigher()) {
+        // All patterns here have been tested to work on:
+        // - 22621.1, 22621.1992, 22621.2134, 22621.2283, 22621.2359 (RP)
+        // - 23545.1000
+
+        // ZeroMemory(symbols_PTRS.twinui_pcshell_PTRS, sizeof(symbols_PTRS.twinui_pcshell_PTRS));
+        if (!VALID(0)) {
+            // Ref: CMultitaskingViewFrame::v_WndProc()
+            // 4D 8B CF 4D 8B C4 8B D6 48 8B 49 08 E8 ? ? ? ? E9
+            //                                        ^^^^^^^
+            PBYTE match = FindPattern(hTwinuiPcShell, miTwinuiPcShell.lpBaseOfDll,
+                                      "\x4D\x8B\xCF\x4D\x8B\xC4\x8B\xD6\x48\x8B\x49\x08\xE8\x00\x00\x00\x00\xE9",
+                                      "xxxxxxxxxxxxx????x");
+            if (match) {
+                match += 12;
+                symbols_PTRS.twinui_pcshell_PTRS[0] = match + 5 + *(int *)(match + 1) - (PBYTE)hTwinuiPcShell;
+                wprintf(L"symbols_PTRS.twinui_pcshell_PTRS[0] = %lX\n", symbols_PTRS.twinui_pcshell_PTRS[0]);
+            }
+        }
+        if (!VALID(1)) {
+            // 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 30 49 8B D8 48 8B FA 48 8B F1 49 83 20 00 41 B0 03 B2 01
+            PBYTE match = FindPattern(hTwinuiPcShell, miTwinuiPcShell.lpBaseOfDll,
+                                      "\x48\x89\x5C\x24\x00\x48\x89\x74\x24\x00\x57\x48\x83\xEC\x30\x49\x8B\xD8\x48\x8B\xFA\x48"
+                                      "\x8B\xF1\x49\x83\x20\x00\x41\xB0\x03\xB2\x01",
+                                      "xxxx?xxxx?xxxxxxxxxxxxxxxxxxxxxxx");
+            if (match) {
+                symbols_PTRS.twinui_pcshell_PTRS[1] = match - (PBYTE)hTwinuiPcShell;
+                wprintf(L"symbols_PTRS.twinui_pcshell_PTRS[1] = %lX\n", symbols_PTRS.twinui_pcshell_PTRS[1]);
+            }
+        }
+        if (!VALID(2)) {
+            // Ref: SwitchItemThumbnailElement::ShowContextMenu()
+            // E8 ? ? ? ? E8 ? ? ? ? 0F B7 C8 E8 ? ? ? ? F7 D8
+            //    ^^^^^^^
+            PBYTE match = FindPattern(hTwinuiPcShell, miTwinuiPcShell.lpBaseOfDll,
+                                      "\xE8\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x0F\xB7\xC8\xE8\x00\x00\x00\x00\xF7\xD8",
+                                      "x????x????xxxx????xx");
+            if (match) {
+                symbols_PTRS.twinui_pcshell_PTRS[2] = match + 5 + *(int *)(match + 1) - (PBYTE)hTwinuiPcShell;
+                wprintf(L"symbols_PTRS.twinui_pcshell_PTRS[2] = %lX\n", symbols_PTRS.twinui_pcshell_PTRS[2]);
+            }
+        }
+        if (!VALID(3)) {
+            // Ref: SwitchItemThumbnailElement::ShowContextMenu()
+            // E8 ? ? ? ? 85 DB 74 29
+            //    ^^^^^^^
+            PBYTE match = FindPattern(hTwinuiPcShell, miTwinuiPcShell.lpBaseOfDll, "\xE8\x00\x00\x00\x00\x85\xDB\x74\x29",
+                                      "x????xxxx");
+            if (match) {
+                symbols_PTRS.twinui_pcshell_PTRS[3] = match + 5 + *(int *)(match + 1) - (PBYTE)hTwinuiPcShell;
+                wprintf(L"symbols_PTRS.twinui_pcshell_PTRS[3] = %lX\n", symbols_PTRS.twinui_pcshell_PTRS[3]);
+            }
+        }
+        if (!VALID(4)) {
+            // E8 ? ? ? ? 90 49 8D 56 38 49 8B CE
+            //    ^^^^^^^
+            PBYTE match = FindPattern(hTwinuiPcShell, miTwinuiPcShell.lpBaseOfDll,
+                                      "\xE8\x00\x00\x00\x00\x90\x49\x8D\x56\x38\x49\x8B\xCE", "x????xxxxxxxx");
+            if (match) {
+                symbols_PTRS.twinui_pcshell_PTRS[4] = match + 5 + *(int *)(match + 1) - (PBYTE)hTwinuiPcShell;
+                wprintf(L"symbols_PTRS.twinui_pcshell_PTRS[4] = %lX\n", symbols_PTRS.twinui_pcshell_PTRS[4]);
+            }
+        }
+        if (!VALID(5)) {
+            // E8 ? ? ? ? 90 48 8D 56 38 48 8B CE
+            //    ^^^^^^^
+            PBYTE match = FindPattern(hTwinuiPcShell, miTwinuiPcShell.lpBaseOfDll,
+                                      "\xE8\x00\x00\x00\x00\x90\x48\x8D\x56\x38\x48\x8B\xCE", "x????xxxxxxxx");
+            if (match) {
+                symbols_PTRS.twinui_pcshell_PTRS[5] = match + 5 + *(int *)(match + 1) - (PBYTE)hTwinuiPcShell;
+                wprintf(L"symbols_PTRS.twinui_pcshell_PTRS[5] = %lX\n", symbols_PTRS.twinui_pcshell_PTRS[5]);
+            }
+        }
+        if (!VALID(6)) {
+            // 48 83 EC 28 41 B0 03 B2 01
+            PBYTE match = FindPattern(hTwinuiPcShell, miTwinuiPcShell.lpBaseOfDll, "\x48\x83\xEC\x28\x41\xB0\x03\xB2\x01",
+                                      "xxxxxxxxx");
+            if (match) {
+                symbols_PTRS.twinui_pcshell_PTRS[6] = match - (PBYTE)hTwinuiPcShell;
+                wprintf(L"symbols_PTRS.twinui_pcshell_PTRS[6] = %lX\n", symbols_PTRS.twinui_pcshell_PTRS[6]);
+            }
+        }
+        if (!VALID(7)) {
+            // Ref: CMultitaskingViewManager::_CreateMTVHost()
+            // 4C 89 74 24 ? ? 8B ? ? 8B ? 8B D7 48 8B CE E8 ? ? ? ? 8B
+            //                                               ^^^^^^^
+            PBYTE match = FindPattern(hTwinuiPcShell, miTwinuiPcShell.lpBaseOfDll,
+                                      "\x4C\x89\x74\x24\x00\x00\x8B\x00\x00\x8B\x00\x8B\xD7\x48\x8B\xCE\xE8\x00\x00\x00\x00\x8B",
+                                      "xxxx??x??x?xxxxxx????x");
+            if (match) {
+                match += 16;
+                symbols_PTRS.twinui_pcshell_PTRS[7] = match + 5 + *(int *)(match + 1) - (PBYTE)hTwinuiPcShell;
+                wprintf(L"symbols_PTRS.twinui_pcshell_PTRS[7] = %lX\n", symbols_PTRS.twinui_pcshell_PTRS[7]);
+            }
+        }
+        if (!VALID(8)) {
+            // Ref: CMultitaskingViewManager::_CreateMTVHost
+            // 4C 89 74 24 ? ? 8B ? ? 8B ? 8B D7 48 8B CE E8 ? ? ? ? 90
+            //                                               ^^^^^^^
+            PBYTE match = FindPattern(hTwinuiPcShell, miTwinuiPcShell.lpBaseOfDll,
+                                      "\x4C\x89\x74\x24\x00\x00\x8B\x00\x00\x8B\x00\x8B\xD7\x48\x8B\xCE\xE8\x00\x00\x00\x00\x90",
+                                      "xxxx??x??x?xxxxxx????x");
+            if (match) {
+                match += 16;
+                symbols_PTRS.twinui_pcshell_PTRS[8] = match + 5 + *(int *)(match + 1) - (PBYTE)hTwinuiPcShell;
+                wprintf(L"symbols_PTRS.twinui_pcshell_PTRS[8] = %lu\n", symbols_PTRS.twinui_pcshell_PTRS[8]);
+            }
+        }
+    }
+
+    if (VALID(0))
+        CImmersiveContextMenuOwnerDrawHelper_s_ContextMenuWndProcFunc = (INT64(*)(HWND, INT, HWND, INT, BOOL *))GETSYMB(0);
+    if (VALID(1))
+        CLauncherTipContextMenu_GetMenuItemsAsyncFunc = (INT64(*)(LPVOID, PVOID, PVOID *))GETSYMB(1);
+    if (VALID(2))
+        ImmersiveContextMenuHelper_ApplyOwnerDrawToMenuFunc = (INT64(*)(HMENU, HMENU, HWND, UINT, PVOID))GETSYMB(2);
+    if (VALID(3))
+        ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc = (void (*)(HMENU, HMENU, HWND))GETSYMB(3);
+    if (VALID(4))
+        CLauncherTipContextMenu_ExecuteShutdownCommandFunc = (void (*)(PVOID, PVOID))GETSYMB(4);
+    if (VALID(5))
+        CLauncherTipContextMenu_ExecuteCommandFunc = (void (*)(PVOID, INT))GETSYMB(5);
+    if (VALID(6)) {
+        CLauncherTipContextMenu_ShowLauncherTipContextMenuFunc = (INT64(*)(PVOID,PPOINT))GETSYMB(6);
+
+        rv = funchook_prepare(funchook, (void **)&CLauncherTipContextMenu_ShowLauncherTipContextMenuFunc,
+                              CLauncherTipContextMenu_ShowLauncherTipContextMenuHook);
+        if (rv != 0)
+            wprintf(L"Failed to hook CLauncherTipContextMenu_ShowLauncherTipContextMenu(). rv = %d\n", rv);
+    }
+    rv = -1;
+    if (VALID(7)) {
+        if (IsWindows11Version22H2OrHigher()) {
+            twinui_pcshell_CMultitaskingViewManager__CreateDCompMTVHostFunc = (INT64(*)(INT64,UINT,INT64,INT64,PINT64))GETSYMB(TWINUI_PCSHELL_SB_CNT-1);
+            twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostFunc  = (INT64(*)(INT64,UINT,INT64,INT64,PINT64))GETSYMB(7);
+            rv = funchook_prepare(funchook, (void **)&twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostFunc,
+                                  twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostHook);
+        }
+        else {
+            twinui_pcshell_IsUndockedAssetAvailableFunc = (INT64(*)(INT,INT64,INT64,LPCSTR))GETSYMB(7);
+            rv = funchook_prepare(funchook, (void **)&twinui_pcshell_IsUndockedAssetAvailableFunc,
+                                  twinui_pcshell_IsUndockedAssetAvailableHook);
+        }
+    }
+    if (rv != 0) {
+        if (IsWindows11Version22H2OrHigher())
+            wprintf(L"Failed to hook twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHost(). rv = %d\n", rv);
+        else
+            wprintf(L"Failed to hook twinui_pcshell_IsUndockedAssetAvailable(). rv = %d\n", rv);
+    }
+
+#undef VALID
+#undef GETSYMB
+
+# if 0
+    if (symbols_PTRS.twinui_pcshell_PTRS[TWINUI_PCSHELL_SB_CNT - 1] &&
+    symbols_PTRS.twinui_pcshell_PTRS[TWINUI_PCSHELL_SB_CNT - 1] != 0xFFFFFFFF)
+    {
+        winrt_Windows_Internal_Shell_implementation_MeetAndChatManager_OnMessageFunc = (INT64(*)(void*,
+    POINT*))
+            ((uintptr_t)hTwinuiPcshell + symbols_PTRS.twinui_pcshell_PTRS[TWINUI_PCSHELL_SB_CNT - 1]);
+        rv = funchook_prepare(
+            funchook,
+            (void**)&winrt_Windows_Internal_Shell_implementation_MeetAndChatManager_OnMessageFunc,
+            winrt_Windows_Internal_Shell_implementation_MeetAndChatManager_OnMessageHook
+        );
+        if (rv != 0)
+        {
+            FreeLibraryAndExitThread(hModule, rv);
+            return rv;
+        }
+    }
+# endif
+
+#ifdef USE_MOMENT_3_FIXES_ON_MOMENT_2
+    // Use this only for testing, since the RtlQueryFeatureConfiguration() hook is perfect.
+    // Only tested on 22621.1992.
+    BOOL bPerformMoment2Patches = IsWindows11Version22H2Build1413OrHigher();
+#else
+    // This is the only way to fix stuff since the flag "26008830" and the code when it's not enabled are gone.
+    // Tested on:
+    // - 22621.2134, 22621.2283, 22621.2359 (RP)
+    // - 23545.1000
+    BOOL bPerformMoment2Patches = IsWindows11Version22H2Build2134OrHigher();
+#endif
+    bPerformMoment2Patches &= bOldTaskbar;
+
+    if (bPerformMoment2Patches) {
+        // Fix flyout placement: Our goal with these patches is to get `mi.rcWork` assigned
+        Moment2PatchActionCenter(&miTwinuiPcShell);
+        Moment2PatchControlCenter(&miTwinuiPcShell);
+        Moment2PatchToastCenter(&miTwinuiPcShell);
+
+        // Fix task view
+        Moment2PatchTaskView(&miTwinuiPcShell);
+
+        // Fix volume and brightness popups
+        HANDLE     hHardwareConfirmator = LoadLibraryW(L"Windows.Internal.HardwareConfirmator.dll");
+        MODULEINFO miHardwareConfirmator;
+        GetModuleInformation(GetCurrentProcess(), hHardwareConfirmator, &miHardwareConfirmator, sizeof(MODULEINFO));
+        Moment2PatchHardwareConfirmator(&miHardwareConfirmator);
+    }
+
+    VnPatchIAT(hTwinuiPcShell, "API-MS-WIN-CORE-REGISTRY-L1-1-0.DLL", "RegGetValueW", twinuipcshell_RegGetValueW);
+#if 0
+    VnPatchIAT(hTwinuiPcshell, "api-ms-win-core-debug-l1-1-0.dll", "IsDebuggerPresent",
+    IsDebuggerPresentHook);
+#endif
+
+    wprintf(L"Setup twinui.pcshell functions done\n");
+}
 
 /**
  * \brief Main injection routine.
@@ -7714,142 +7943,95 @@ Inject(BOOL bIsExplorer)
     }
 
     unsigned numSettings = bIsExplorer ? 12 : 2;
-    Setting *settings    = calloc(numSettings, sizeof(Setting));
-    if (settings) {
-        unsigned cs = 0;
+    Setting *settings    = malloc(numSettings * sizeof *settings);
+    if (!settings)
+        abort();
 
-        if (cs < numSettings) {
-            settings[cs].callback = NULL;
-            settings[cs].data     = NULL;
-            settings[cs].hEvent   = CreateEventW(NULL, FALSE, FALSE, NULL);
-            settings[cs].hKey     = NULL;
-            ZeroMemory(settings[cs].name, MAX_PATH);
-            settings[cs].origin = NULL;
-            cs++;
-        }
+    settings[0] = (Setting){
+        .hEvent = CreateEventW(NULL, FALSE, FALSE, NULL),
+        .name   = L"",
+    };
+    settings[1] = (Setting){
+        .callback = LoadSettings,
+        .data     = MAKELPARAM(bIsExplorer, TRUE),
+        .origin   = HKEY_CURRENT_USER,
+        .name     = L"" REGPATH,
+    };
 
-        if (cs < numSettings) {
-            settings[cs].callback = LoadSettings;
-            settings[cs].data     = MAKELPARAM(bIsExplorer, TRUE);
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, L"" REGPATH);
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
+    if (bIsExplorer) {
+        settings[2] = (Setting){
+            .callback = LoadSettings,
+            .data     = MAKELPARAM(bIsExplorer, FALSE),
+            .origin   = HKEY_CURRENT_USER,
+            .name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartPage"
+        };
+        settings[3] = (Setting){
+            .callback = SetEvent,
+            .data     = hSwsSettingsChanged,
+            .origin   = HKEY_CURRENT_USER,
+            .name     = REGPATH L"\\sws",
+        };
+        settings[4] = (Setting){
+            .callback = SetEvent,
+            .data     = hSwsOpacityMaybeChanged,
+            .origin   = HKEY_CURRENT_USER,
+            .name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MultitaskingView\\AltTabViewHost",
+        };
+        settings[5] = (Setting){
+            .callback = Explorer_RefreshUI,
+            .data     = 1,
+            .origin   = HKEY_CURRENT_USER,
+            .name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        };
+        settings[6] = (Setting){
+            .callback = Explorer_RefreshUI,
+            .data     = 2,
+            .origin   = HKEY_CURRENT_USER,
+            .name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search",
+        };
+        settings[7] = (Setting){
+            .callback = Explorer_RefreshUI,
+            .data     = NULL,
+            .origin   = HKEY_CURRENT_USER,
+            .name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\People",
+        };
+        settings[8] = (Setting){
+            .callback = Explorer_RefreshUI,
+            .data     = NULL,
+            .origin   = HKEY_CURRENT_USER,
+            .name     = L"SOFTWARE\\Microsoft\\TabletTip\\1.7",
+        };
+        settings[9] = (Setting){
+            .callback = SetEvent,
+            .data     = hSwsSettingsChanged,
+            .origin   = HKEY_CURRENT_USER,
+            .name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+        };
+        settings[10] = (Setting){
+            .callback = UpdateStartMenuPositioning,
+            .data     = MAKELPARAM(FALSE, TRUE),
+            .origin   = HKEY_CURRENT_USER,
+            .name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+        };
+        settings[11] = (Setting){
+            .callback = LoadSettings,
+            .data     = MAKELPARAM(bIsExplorer, FALSE),
+            .origin   = HKEY_CURRENT_USER,
+            .name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer",
+        };
+    }
 
-        if (cs < numSettings) {
-            settings[cs].callback = LoadSettings;
-            settings[cs].data     = MAKELPARAM(bIsExplorer, FALSE);
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartPage");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
 
-        if (cs < numSettings) {
-            settings[cs].callback = SetEvent;
-            settings[cs].data     = hSwsSettingsChanged;
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, REGPATH L"\\sws");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
-
-        if (cs < numSettings) {
-            settings[cs].callback = SetEvent;
-            settings[cs].data     = hSwsOpacityMaybeChanged;
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH,
-                     L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MultitaskingView\\AltTabViewHost");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
-
-        if (cs < numSettings) {
-            settings[cs].callback = Explorer_RefreshUI;
-            settings[cs].data     = 1;
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
-
-        if (cs < numSettings) {
-            settings[cs].callback = Explorer_RefreshUI;
-            settings[cs].data     = 2;
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
-
-        if (cs < numSettings) {
-            settings[cs].callback = Explorer_RefreshUI;
-            settings[cs].data     = NULL;
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\People");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
-
-        if (cs < numSettings) {
-            settings[cs].callback = Explorer_RefreshUI;
-            settings[cs].data     = NULL;
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, L"SOFTWARE\\Microsoft\\TabletTip\\1.7");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
-
-        if (cs < numSettings) {
-            settings[cs].callback = SetEvent;
-            settings[cs].data     = hSwsSettingsChanged;
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
-
-        if (cs < numSettings) {
-            settings[cs].callback = UpdateStartMenuPositioning;
-            settings[cs].data     = MAKELPARAM(FALSE, TRUE);
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
-
-        if (cs < numSettings) {
-            settings[cs].callback = LoadSettings;
-            settings[cs].data     = MAKELPARAM(bIsExplorer, FALSE);
-            settings[cs].hEvent   = NULL;
-            settings[cs].hKey     = NULL;
-            wcscpy_s(settings[cs].name, MAX_PATH, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer");
-            settings[cs].origin = HKEY_CURRENT_USER;
-            cs++;
-        }
-
-        SettingsChangeParameters *settingsParams = calloc(1, sizeof(SettingsChangeParameters));
-        if (settingsParams) {
-            settingsParams->settings = settings;
-            settingsParams->size     = numSettings;
-            settingsParams->hThread  = CreateThread(0, 0, MonitorSettings, settingsParams, 0, 0);
-        } else {
-            if (numSettings && settings[0].hEvent)
-                CloseHandle(settings[0].hEvent);
-            free(settings);
-            settings = NULL;
-        }
+    SettingsChangeParameters *settingsParams = calloc(1, sizeof(SettingsChangeParameters));
+    if (settingsParams) {
+        settingsParams->settings = settings;
+        settingsParams->size     = numSettings;
+        settingsParams->hThread  = CreateThread(0, 0, MonitorSettings, settingsParams, 0, 0);
+    } else {
+        if (numSettings && settings[0].hEvent)
+            CloseHandle(settings[0].hEvent);
+        free(settings);
+        settings = NULL;
     }
 
     InjectBasicFunctions(bIsExplorer, TRUE);
@@ -8054,115 +8236,7 @@ Inject(BOOL bIsExplorer)
     // DwmExtendFrameIntoClientArea hooked in LoadSettings
     wprintf(L"Setup uxtheme functions done\n");
 
-    HANDLE hTwinuiPcshell = LoadLibraryW(L"twinui.pcshell.dll");
-
-# define VALID(n) (symbols_PTRS.twinui_pcshell_PTRS[n] && symbols_PTRS.twinui_pcshell_PTRS[n] != 0xFFFFFFFFu)
-# define GETSYMB(n) ((uintptr_t)hTwinuiPcshell + symbols_PTRS.twinui_pcshell_PTRS[n])
-
-    if (VALID(0))
-        CImmersiveContextMenuOwnerDrawHelper_s_ContextMenuWndProcFunc = (INT64(*)(HWND,INT,HWND,INT,BOOL*))GETSYMB(0);
-    if (VALID(1))
-        CLauncherTipContextMenu_GetMenuItemsAsyncFunc                 = (INT64(*)(LPVOID,PVOID,PVOID*))GETSYMB(1);
-    if (VALID(2))
-        ImmersiveContextMenuHelper_ApplyOwnerDrawToMenuFunc           = (INT64(*)(HMENU,HMENU,HWND,UINT,PVOID))GETSYMB(2);
-    if (VALID(3))
-        ImmersiveContextMenuHelper_RemoveOwnerDrawFromMenuFunc        = (void(*)(HMENU,HMENU,HWND))GETSYMB(3);
-    if (VALID(4))
-        CLauncherTipContextMenu_ExecuteShutdownCommandFunc            = (void(*)(PVOID,PVOID))GETSYMB(4);
-    if (VALID(5))
-        CLauncherTipContextMenu_ExecuteCommandFunc                    = (void(*)(PVOID,INT))GETSYMB(5);
-    if (VALID(6)) {
-        CLauncherTipContextMenu_ShowLauncherTipContextMenuFunc        = (INT64(*)(PVOID,PPOINT))GETSYMB(6);
-
-        rv = funchook_prepare(funchook, (void **)&CLauncherTipContextMenu_ShowLauncherTipContextMenuFunc,
-                              CLauncherTipContextMenu_ShowLauncherTipContextMenuHook);
-        if (rv != 0) {
-            wprintf(L"Funchook error number %d\n", rv);
-            abort();
-            // BUG This causes a deadlock.
-            FreeLibraryAndExitThread(hModule, rv);
-        }
-    }
-    if (VALID(7)) {
-        if (IsWindows11Version22H2OrHigher()) {
-            twinui_pcshell_CMultitaskingViewManager__CreateDCompMTVHostFunc = (INT64(*)(INT64,UINT,INT64,INT64,PINT64))GETSYMB(TWINUI_PCSHELL_SB_CNT-1);
-            twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostFunc  = (INT64(*)(INT64,UINT,INT64,INT64,PINT64))GETSYMB(7);
-
-            rv = funchook_prepare(funchook, (void **)&twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostFunc,
-                                  twinui_pcshell_CMultitaskingViewManager__CreateXamlMTVHostHook);
-            if (rv != 0) {
-                FreeLibraryAndExitThread(hModule, rv);
-                return rv;
-            }
-        } else {
-            twinui_pcshell_IsUndockedAssetAvailableFunc = (INT64(*)(PVOID,PPOINT))GETSYMB(7);
-            rv = funchook_prepare(funchook, (void **)&twinui_pcshell_IsUndockedAssetAvailableFunc,
-                                  twinui_pcshell_IsUndockedAssetAvailableHook);
-            if (rv != 0) {
-                FreeLibraryAndExitThread(hModule, rv);
-                return rv;
-            }
-        }
-    }
-
-# undef VALID
-# undef GETSYMB
-
-# if 0
-    if (symbols_PTRS.twinui_pcshell_PTRS[TWINUI_PCSHELL_SB_CNT - 1] &&
-    symbols_PTRS.twinui_pcshell_PTRS[TWINUI_PCSHELL_SB_CNT - 1] != 0xFFFFFFFF)
-    {
-        winrt_Windows_Internal_Shell_implementation_MeetAndChatManager_OnMessageFunc = (INT64(*)(void*,
-    POINT*))
-            ((uintptr_t)hTwinuiPcshell + symbols_PTRS.twinui_pcshell_PTRS[TWINUI_PCSHELL_SB_CNT - 1]);
-        rv = funchook_prepare(
-            funchook,
-            (void**)&winrt_Windows_Internal_Shell_implementation_MeetAndChatManager_OnMessageFunc,
-            winrt_Windows_Internal_Shell_implementation_MeetAndChatManager_OnMessageHook
-        );
-        if (rv != 0)
-        {
-            FreeLibraryAndExitThread(hModule, rv);
-            return rv;
-        }
-    }
-# endif
-
-# ifdef USE_MOMENT_3_FIXES_ON_MOMENT_2
-        // Use this only for testing, since the RtlQueryFeatureConfiguration() hook is perfect.
-        // Only tested on 22621.1992.
-        BOOL bPerformMoment2Patches = IsWindows11Version22H2Build1413OrHigher();
-# else
-        // This is the only way to fix stuff since the flag "26008830" and the code when it's not enabled are gone.
-        // Tested on 22621.2134, 22621.2283, and 22621.2359 (RP).
-        BOOL bPerformMoment2Patches = IsWindows11Version22H2Build2134OrHigher();
-# endif
-    bPerformMoment2Patches &= global_rovi.dwBuildNumber == 22621 && bOldTaskbar;
-
-    if (bPerformMoment2Patches) // TODO Test for 23H2
-    {
-        MODULEINFO miTwinuiPcshell;
-        GetModuleInformation(GetCurrentProcess(), hTwinuiPcshell, &miTwinuiPcshell, sizeof(MODULEINFO));
-
-        // Fix flyout placement: Our goal with these patches is to get `mi.rcWork` assigned
-        Moment2PatchActionCenter(&miTwinuiPcshell);
-        Moment2PatchControlCenter(&miTwinuiPcshell);
-        Moment2PatchToastCenter(&miTwinuiPcshell);
-
-        // Fix task view
-        Moment2PatchTaskView(&miTwinuiPcshell);
-
-        // Fix volume and brightness popups
-        HANDLE     hHardwareConfirmator = LoadLibraryW(L"Windows.Internal.HardwareConfirmator.dll");
-        MODULEINFO miHardwareConfirmator;
-        GetModuleInformation(GetCurrentProcess(), hHardwareConfirmator, &miHardwareConfirmator, sizeof(MODULEINFO));
-        Moment2PatchHardwareConfirmator(&miHardwareConfirmator);
-    }
-
-    VnPatchIAT(hTwinuiPcshell, "API-MS-WIN-CORE-REGISTRY-L1-1-0.DLL", "RegGetValueW", twinuipcshell_RegGetValueW);
-    // VnPatchIAT(hTwinuiPcshell, "api-ms-win-core-debug-l1-1-0.dll", "IsDebuggerPresent",
-    // IsDebuggerPresentHook);
-    wprintf(L"Setup twinui.pcshell functions done\n");
+    inject_twinui_pcshell(symbols_PTRS);
 
     if (IsWindows11Version22H2OrHigher()) {
         HANDLE hCombase = LoadLibraryW(L"combase.dll");
@@ -8171,7 +8245,6 @@ Inject(BOOL bIsExplorer)
         VnPatchIAT(hCombase, "api-ms-win-core-libraryloader-l1-2-0.dll", "LoadLibraryExW", Windows11v22H2_combase_LoadLibraryExW);
         wprintf(L"Setup combase functions done\n");
     }
-
 
     HANDLE hTwinui = LoadLibraryW(L"twinui.dll");
     if (!IsWindows11())
@@ -8885,7 +8958,8 @@ static int Start_SetWindowRgn(HWND hWnd, HRGN hRgn, BOOL bRedraw)
                         hWndTemp = FindWindowExW(NULL, hWndTemp, L"Shell_SecondaryTrayWnd", NULL);
                         if (hWndTemp && !hWndTaskbar &&
                             hMonitorOfStartMenu == MonitorFromWindow(hWndTemp, MONITOR_DEFAULTTOPRIMARY) &&
-                            dwMMOldTaskbarAl) {
+                            dwMMOldTaskbarAl)
+                        {
                             hWndTaskbar = hWndTemp;
                             break;
                         }
@@ -8928,43 +9002,21 @@ static int Start_SetWindowRgn(HWND hWnd, HRGN hRgn, BOOL bRedraw)
             if (hWndTaskbar) {
                 if (rcC.left < 5 && rcC.top > 5) {
                     if (dwStartShowClassicMode) {
-                        SetWindowPos(
-                            hWnd, NULL,
-                            mi.rcMonitor.left + (((mi.rcMonitor.right - mi.rcMonitor.left) - (rc.right - rc.left)) / 2),
-                            mi.rcMonitor.top, 0, 0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS
-                        );
+                        SetWindowPos(hWnd, NULL, mi.rcMonitor.left + (((mi.rcMonitor.right - mi.rcMonitor.left) - (rc.right - rc.left)) / 2), mi.rcMonitor.top, 0, 0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS);
                     } else {
                         // Windows 11 Start menu knows how to center itself when the taskbar is at the bottom
                         // of the screen
-                        SetWindowPos(
-                            hWnd, NULL, mi.rcMonitor.left, mi.rcMonitor.top, 0, 0,
-                            SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS
-                        );
+                        SetWindowPos(hWnd, NULL, mi.rcMonitor.left, mi.rcMonitor.top, 0, 0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS);
                     }
                 } else if (rcC.left < 5 && rcC.top < 5 && rcC.right > rcC.bottom) {
-                    SetWindowPos(
-                        hWnd, NULL,
-                        mi.rcMonitor.left + (((mi.rcMonitor.right - mi.rcMonitor.left) - (rc.right - rc.left)) / 2),
-                        mi.rcMonitor.top + (rcC.bottom - rcC.top), 0, 0,
-                        SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS
-                    );
+                    SetWindowPos(hWnd, NULL, mi.rcMonitor.left + (((mi.rcMonitor.right - mi.rcMonitor.left) - (rc.right - rc.left)) / 2), mi.rcMonitor.top + (rcC.bottom - rcC.top), 0, 0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS);
                 } else if (rcC.left < 5 && rcC.top < 5 && rcC.right < rcC.bottom) {
-                    SetWindowPos(
-                        hWnd, NULL, mi.rcMonitor.left + (rcC.right - rcC.left),
-                        mi.rcMonitor.top + (((mi.rcMonitor.bottom - mi.rcMonitor.top) - (rc.bottom - rc.top)) / 2), 0,
-                        0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS
-                    );
+                    SetWindowPos(hWnd, NULL, mi.rcMonitor.left + (rcC.right - rcC.left), mi.rcMonitor.top + (((mi.rcMonitor.bottom - mi.rcMonitor.top) - (rc.bottom - rc.top)) / 2), 0, 0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS);
                 } else if (rcC.left > 5 && rcC.top < 5) {
-                    SetWindowPos(
-                        hWnd, NULL, mi.rcMonitor.left,
-                        mi.rcMonitor.top + (((mi.rcMonitor.bottom - mi.rcMonitor.top) - (rc.bottom - rc.top)) / 2), 0,
-                        0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS
-                    );
+                    SetWindowPos(hWnd, NULL, mi.rcMonitor.left, mi.rcMonitor.top + (((mi.rcMonitor.bottom - mi.rcMonitor.top) - (rc.bottom - rc.top)) / 2), 0, 0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS);
                 }
             } else {
-                SetWindowPos(
-                    hWnd, NULL, mi.rcWork.left, mi.rcWork.top, 0, 0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS
-                );
+                SetWindowPos(hWnd, NULL, mi.rcWork.left, mi.rcWork.top, 0, 0, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS);
             }
         }
     }
@@ -9299,43 +9351,43 @@ static int InjectStartMenu(void)
     settings[0].hEvent   = CreateEventW(NULL, FALSE, FALSE, NULL);
     settings[0].hKey     = NULL;
     settings[0].origin   = NULL;
+    settings[0].name     = L"";
 
     settings[1].callback = StartMenu_LoadSettings;
     settings[1].data     = FALSE;
     settings[1].hEvent   = NULL;
     settings[1].hKey     = NULL;
     settings[1].origin   = HKEY_CURRENT_USER;
+    settings[1].name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartPage";
 
     settings[2].callback = StartMenu_LoadSettings;
     settings[2].data     = TRUE;
     settings[2].hEvent   = NULL;
     settings[2].hKey     = NULL;
     settings[2].origin   = HKEY_CURRENT_USER;
+    settings[2].name     = L"" REGPATH_STARTMENU;
 
     settings[3].callback = StartMenu_LoadSettings;
     settings[3].data     = TRUE;
     settings[3].hEvent   = NULL;
     settings[3].hKey     = NULL;
     settings[3].origin   = HKEY_CURRENT_USER;
+    settings[3].name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced";
 
     settings[4].callback = StartMenu_LoadSettings;
     settings[4].data     = TRUE;
     settings[4].hEvent   = NULL;
     settings[4].hKey     = NULL;
     settings[4].origin   = HKEY_CURRENT_USER;
+    settings[4].name     = L"SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer";
 
     settings[5].callback = StartMenu_LoadSettings;
     settings[5].data     = TRUE;
     settings[5].hEvent   = NULL;
     settings[5].hKey     = NULL;
-    settings[5].origin = HKEY_CURRENT_USER;
+    settings[5].origin   = HKEY_CURRENT_USER;
+    settings[5].name     = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer";
 
-    settings[0].name[0] = L'\0';
-    wcscpy(settings[1].name, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartPage");
-    wcscpy(settings[2].name, L"" REGPATH_STARTMENU);
-    wcscpy(settings[3].name, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced");
-    wcscpy(settings[4].name, L"SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer");
-    wcscpy(settings[5].name, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer");
 
     SettingsChangeParameters *params = malloc(sizeof *params);
     params->settings = settings;
@@ -9415,8 +9467,8 @@ static void InjectShellExperienceHost(void)
         if (dosHeader->e_magic == IMAGE_DOS_SIGNATURE) {
             PIMAGE_NT_HEADERS64 ntHeader = (PIMAGE_NT_HEADERS64)((u_char *)dosHeader + dosHeader->e_lfanew);
             if (ntHeader->Signature == IMAGE_NT_SIGNATURE) {
-                unsigned char *pSEHPatchArea    = NULL;
-                unsigned char seh_pattern1[14] = {
+                unsigned char *pSEHPatchArea   = NULL;
+                const unsigned char seh_pattern1[14] = {
                     // mov al, 1
                     0xB0, 0x01,
                     // jmp + 2
@@ -9435,7 +9487,7 @@ static void InjectShellExperienceHost(void)
                     0xC3
                 };
                 unsigned char seh_off = 12;
-                unsigned char seh_pattern2[5] = {
+                const unsigned char seh_pattern2[5] = {
                     // mov r8b, 3
                     0x41, 0xB0, 0x03,
                     // mov dl, 1
@@ -9610,19 +9662,16 @@ static HRESULT InformUserAboutCrashCallback(
 
 static DWORD InformUserAboutCrash(LPVOID msg)
 {
-    TASKDIALOG_BUTTON buttons[1];
-    buttons[0].nButtonID     = IDNO;
-    buttons[0].pszButtonText = L"Dismiss";
-
-    TASKDIALOGCONFIG td = {
-        .cbSize             = sizeof(TASKDIALOGCONFIG),
+    const TASKDIALOG_BUTTON buttons[1] = {IDNO, L"Dismiss"};
+    const TASKDIALOGCONFIG td = {
+        .cbSize             = sizeof td,
         .hInstance          = hModule,
         .hwndParent         = NULL,
         .dwFlags            = TDF_SIZE_TO_CONTENT | TDF_ENABLE_HYPERLINKS,
         .pszWindowTitle     = L"ExplorerPatcher",
         .pszMainInstruction = L"Unfortunately, File Explorer is crashing :(",
         .pszContent         = msg,
-        .cButtons           = sizeof buttons / sizeof buttons[0],
+        .cButtons           = _countof(buttons),
         .pButtons           = buttons,
         .cRadioButtons      = 0,
         .pRadioButtons      = NULL,
@@ -9634,7 +9683,7 @@ static DWORD InformUserAboutCrash(LPVOID msg)
     HMODULE hComCtl32 = NULL;
     int     res       = td.nDefaultButton;
 
-    if (!(hComCtl32 = GetModuleHandleA("Comctl32.dll")) ||
+    if (!(hComCtl32 = GetModuleHandleW(L"Comctl32.dll")) ||
         !(pfTaskDialogIndirect = GetProcAddress(hComCtl32, "TaskDialogIndirect")) ||
         FAILED(pfTaskDialogIndirect(&td, &res, NULL, NULL)))
     {

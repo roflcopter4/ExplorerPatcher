@@ -1444,7 +1444,7 @@ DWORD WINAPI epw_Weather_MainThread(EPWeather* _this)
         else if (dwRes == WAIT_OBJECT_0 + EP_WEATHER_NUM_SIGNALS)
         {
             BOOL bRet = 0, bQuit = FALSE;
-            while (bRet = PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+            while ((bRet = PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))) {
                 if (msg.message == WM_QUIT)
                 {
                     bQuit = TRUE;

@@ -23,21 +23,19 @@ static constexpr GUID uuidof_Windows_UI_Core_ICoreWindow5 = {
 extern "C" void
 ExplorerPatcher_EnsureXAML(void)
 {
-    //using get_func = void(__fastcall *)(IInspectable *This, void **data);
-    using get_func = void(__fastcall *)(void);
+    using ABI::Windows::UI::Core::ICoreWindow5;
+    using ABI::Windows::System::IDispatcherQueue;
 
     static std::atomic_flag flg;
     if (flg.test_and_set())
         return;
 
-    get_func func;
     HStringWrapper      hstringXamlApplication;
     HStringWrapper      hstringWindowsXamlManager;
     IInspectable       *pXamlApplication          = nullptr;
     IActivationFactory *pUIXamlApplicationFactory = nullptr;
-
-    ABI::Windows::UI::Core::ICoreWindow5   *pCoreWindow5     = nullptr;
-    ABI::Windows::System::IDispatcherQueue *pDispatcherQueue = nullptr;
+    ICoreWindow5       *pCoreWindow5              = nullptr;
+    IDispatcherQueue   *pDispatcherQueue          = nullptr;
 
     HRESULT res = hstringXamlApplication.makeRef(L"Windows.Internal.Shell.XamlExplorerHost.XamlApplication");
     if (FAILED(res) || !hstringXamlApplication)
@@ -50,33 +48,28 @@ ExplorerPatcher_EnsureXAML(void)
                                  uuidof_Windows_Internal_Shell_XamlExplorerHost_IXamlApplicationStatics,
                                  reinterpret_cast<void **>(&pUIXamlApplicationFactory));
     if (FAILED(res) || !pUIXamlApplicationFactory) {
-        char *errmsg = ExplorerPatcher_GetWin32ErrorMessage(res);
         wprintf(L"Error in sub_1800135EC on RoGetActivationFactory (0x%08lX): \"%hs\".\n",
-                res, errmsg);
-        free(errmsg);
-        goto cleanup;
+                res, std::error_code{res, std::system_category()}.message().c_str());
+        return;
     }
-
-    func = *reinterpret_cast<get_func *>(*reinterpret_cast<UINT_PTR *>(pUIXamlApplicationFactory) + 56);
     pUIXamlApplicationFactory->ActivateInstance(&pXamlApplication); // this is get_Current
-    func();
 
     if (!pXamlApplication) {
         wprintf(L"Error in sub_1800135EC on pUIXamlApplicationFactory + 48.\n");
-        goto cleanup;
+        goto cleanup1;
     }
 
     res = hstringWindowsXamlManager.makeRef(L"Windows.UI.Xaml.Hosting.WindowsXamlManager");
     if (FAILED(res) || !hstringWindowsXamlManager) {
         wprintf(L"Error in sub_1800135EC on WindowsCreateStringReference 2.\n");
-        goto cleanup;
+        goto cleanup2;
     }
 
     res = RoGetActivationFactory(hstringWindowsXamlManager, uuidof_Windows_UI_Core_ICoreWindow5,
                                  reinterpret_cast<void **>(&pCoreWindow5));
     if (FAILED(res) || !pCoreWindow5) {
         wprintf(L"Error (%lX) in sub_1800135EC on RoGetActivationFactory 2.\n", res);
-        goto cleanup;
+        goto cleanup2;
     }
 
     pCoreWindow5->get_DispatcherQueue(&pDispatcherQueue);
@@ -85,13 +78,11 @@ ExplorerPatcher_EnsureXAML(void)
     }
 
     // Keep pDispatcherQueue referenced in memory
-cleanup:
-    if (pXamlApplication)
-        pXamlApplication->Release();
-    if (pCoreWindow5)
-        pCoreWindow5->Release();
-    if (pUIXamlApplicationFactory)
-        pUIXamlApplicationFactory->Release();
+    pCoreWindow5->Release();
+cleanup2:
+    pXamlApplication->Release();
+cleanup1:
+    pUIXamlApplicationFactory->Release();
 }
 
 

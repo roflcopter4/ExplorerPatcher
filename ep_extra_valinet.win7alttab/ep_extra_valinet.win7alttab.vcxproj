@@ -143,6 +143,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='IntelRelease|x64'">
     <OutDir>$(SolutionDir)\build\$(Configuration)</OutDir>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)\build\$(Configuration)</OutDir>
@@ -287,7 +288,7 @@
       <UseProcessorExtensions>HOST</UseProcessorExtensions>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion -Wformat -Werror=format  -Wno-incompatible-function-pointer-types -Wno-int-conversion -Wno-incompatible-pointer-types -Werror=sizeof-pointer-div %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion -Wformat -Werror=format  -Wno-incompatible-function-pointer-types -Wno-int-conversion -Wno-incompatible-pointer-types -Werror=sizeof-pointer-div -Wno-unused-variable -Wno-unused-function -Werror=parentheses -Werror=string-compare %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>;$(SolutionDir)Common;$(SolutionDir)</AdditionalIncludeDirectories>
       <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
@@ -312,7 +313,7 @@
       <UseProcessorExtensions>HOST</UseProcessorExtensions>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion /clang:-march=native /clang:-O3 /clang:-flto=full %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion /clang:-march=native /clang:-flto=full %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -328,6 +329,7 @@
       <AdditionalOptions>/force:multiple %(AdditionalOptions)</AdditionalOptions>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <WPOAssemblyOutput>Asm_and_MachineCode_and_Source</WPOAssemblyOutput>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

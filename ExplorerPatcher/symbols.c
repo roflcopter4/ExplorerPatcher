@@ -821,7 +821,10 @@ BOOL LoadSymbols(symbols_addr* symbols_PTRS, HMODULE hModule)
     RegQueryValueExW(hKey, L"OSBuild", NULL, NULL, szStoredVersion, &dwSize);
     RegCloseKey(hKey);
 
-    if (!bNeedToDownload && (!bIsTwinuiPcshellHardcoded || !bIsStartHardcoded))
+    if (!bNeedToDownload && (!bIsTwinuiPcshellHardcoded || !bIsStartHardcoded)) {
         bNeedToDownload = wcscmp(szReportedVersion, szStoredVersion);
+        if (bNeedToDownload)
+            ZeroMemory(symbols_PTRS, sizeof(symbols_addr));
+    }
     return bNeedToDownload;
 }

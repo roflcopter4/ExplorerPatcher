@@ -12,7 +12,7 @@ static void OpenConsoleWindow()
     FreeConsole();
     if (!AllocConsole()) {
         DWORD err = GetLastError();
-        WCHAR buf[512];
+        WCHAR buf[128];
         swprintf_s(buf, std::size(buf),
                    L"Failed to allocate a console (error %lX). "
                    L"If this happens your computer is probably on fire.",

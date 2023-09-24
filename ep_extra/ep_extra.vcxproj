@@ -148,7 +148,7 @@
     <OutDir>$(SolutionDir)\build\$(Configuration)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='IntelRelease|x64'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)\build\$(Configuration)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -309,7 +309,7 @@
       <UseProcessorExtensions>HOST</UseProcessorExtensions>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion -Wformat -Werror=format  -Wno-incompatible-function-pointer-types -Wno-int-conversion -Wno-incompatible-pointer-types -Werror=sizeof-pointer-div %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion -Wformat -Werror=format  -Wno-incompatible-function-pointer-types -Wno-int-conversion -Wno-incompatible-pointer-types -Werror=sizeof-pointer-div -Wno-unused-variable -Wno-unused-function -Werror=parentheses -Werror=string-compare %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>;$(SolutionDir)Common;$(SolutionDir)</AdditionalIncludeDirectories>
       <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
@@ -336,7 +336,7 @@
       <UseProcessorExtensions>HOST</UseProcessorExtensions>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion /clang:-march=native /clang:-O3 /clang:-flto=full %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Wno-error=incompatible-function-pointer-types -Wno-error=int-conversion /clang:-march=native /clang:-flto=full %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -354,6 +354,7 @@
       <AdditionalOptions>/EXPORT:ep_extra_EntryPoint %(AdditionalOptions)</AdditionalOptions>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <WPOAssemblyOutput>Asm_and_MachineCode_and_Source</WPOAssemblyOutput>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

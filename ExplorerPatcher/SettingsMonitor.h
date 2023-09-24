@@ -8,12 +8,12 @@
 #pragma comment(lib, "Shlwapi.lib")
 
 typedef struct Setting {
-    HKEY   origin;
-    HKEY   hKey;
-    HANDLE hEvent;
-    void(__stdcall *callback)(void *);
+    void(CALLBACK *callback)(void *);
     void   *data;
-    wchar_t name[MAX_PATH];
+    HANDLE  hEvent;
+    HKEY    hKey;
+    HKEY    origin;
+    LPCWSTR name;
 } Setting;
 
 typedef struct SettingsChangeParameters {
