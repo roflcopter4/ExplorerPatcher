@@ -4512,7 +4512,7 @@ static void WINAPI LoadSettings(LPARAM lParam)
         dwTemp = 0;
         myRegQueryValueEx(hKey, L"Memcheck", &dwTemp);
         if (dwTemp) {
-#if defined(DEBUG) || defined(_DEBUG)
+#ifdef _DEBUG
             wprintf(L"[Memcheck] Dumping memory leaks...\n");
             _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
             _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
@@ -7179,7 +7179,7 @@ Inject(BOOL bIsExplorer)
     HANDLE hThread;
     int    rv;
 
-#if defined(DEBUG) || defined(_DEBUG)
+#ifdef _DEBUG
     ExplorerPatcher_OpenConsoleWindow();
 #endif
 
@@ -7509,7 +7509,6 @@ Inject(BOOL bIsExplorer)
         VnPatchIAT(hExplorer, "dwmapi.dll", "DwmUpdateThumbnailProperties", explorer_DwmUpdateThumbnailPropertiesHook);
         PatchExplorer_UpdateWindowAccentProperties();
     }
-
 
     HANDLE hShcore  = LoadLibraryW(L"shcore.dll");
     SHWindowsPolicy = GetProcAddress(hShcore, (LPCSTR)190);

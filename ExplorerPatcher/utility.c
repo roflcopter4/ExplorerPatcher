@@ -13,7 +13,7 @@ SHRegGetValueFromHKCUHKLMFunc_t SHRegGetValueFromHKCUHKLMFunc;
 RTL_OSVERSIONINFOW global_rovi;
 DWORD32            global_ubr;
 
-extern _ACRTIMP errno_t __cdecl rand_s(_Out_ unsigned int* _RandomValue);
+extern _ACRTIMP errno_t __cdecl rand_s(_Out_ unsigned int *randomValue);
 
 
 #pragma region "Weird stuff"
@@ -23,12 +23,7 @@ struct IActivationFactoryAA {
     CONST_VTBL IActivationFactoryVtbl *lpVtbl3;
 };
 
-typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_QueryInterface_t)     (IActivationFactory *, IID const *, void **);
-typedef ULONG   (STDMETHODCALLTYPE *IAtblCB_Base_t)               (IActivationFactory *);
-typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_GetIids_t)            (IActivationFactory *, ULONG *, IID **);
-typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_GetRuntimeClassName_t)(IActivationFactory *, HSTRING *);
-typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_GetTrustLevel_t)      (IActivationFactory *, TrustLevel *);
-typedef HRESULT (STDMETHODCALLTYPE *IAtblCB_ActivateInstance_t)   (IActivationFactory *, IInspectable **);
+typedef HRESULT(STDMETHODCALLTYPE *IAtblCB_ActivateInstance_t)(IActivationFactory *, IInspectable **);
 
 /*--------------------------------------------------------------------------------------*/
 
@@ -36,13 +31,13 @@ DEFINE_GUID(uuid_xamlActivationFactory,
             0x34A95314, 0xCA5C, 0x5FAD,
             0xAE, 0x7C, 0x1A, 0x90, 0x18, 0x11, 0x66, 0xC1);
 
-static HRESULT STDMETHODCALLTYPE
+static ULONG STDMETHODCALLTYPE
 vtable_impl_AddRef(IActivationFactory *_this)
 {
     return 1;
 }
 
-static HRESULT STDMETHODCALLTYPE
+static ULONG STDMETHODCALLTYPE
 vtable_impl_Release(IActivationFactory *_this)
 {
     return 1;

@@ -47,7 +47,7 @@ ExplorerPatcher_CloseConsoleWindow(void)
 {
     std::lock_guard lock(console_mutex);
     if (console_opened.exchange(false, std::memory_order::relaxed))
-        ::FreeConsole();
+        FreeConsole();
 }
 
 
